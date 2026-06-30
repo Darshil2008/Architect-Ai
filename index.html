@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Architect AI — From idea to architecture, in one interview</title>
+  <meta name="description"
+    content="Architect AI interviews you, analyzes your skills and goals, then generates a production-ready blueprint — stack, schema, APIs, roadmap, and resume impact." />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="grid-bg" aria-hidden="true"></div>
+  <canvas id="particles" aria-hidden="true"></canvas>
+  <div class="cursor-glow" id="cursor-glow" aria-hidden="true"></div>
+
+  <!-- HEADER -->
+  <header id="site-header">
+    <div class="container nav-inner">
+      <a href="#" class="brand" aria-label="Architect AI home">
+        <span class="brand-glyph">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"
+            stroke-linejoin="round">
+            <path d="M3 21 12 4l9 17" />
+            <path d="M7.5 14h9" />
+          </svg>
+        </span>
+        <span class="brand-text">Architect<span class="accent"> AI</span></span>
+      </a>
+
+      <nav class="nav-links" aria-label="Primary">
+        <a href="#features">Features</a>
+        <a href="#workflow">How it works</a>
+        <a href="#demo">Try it</a>
+        <a href="#faq">FAQ</a>
+      </nav>
+
+      <div class="nav-cta">
+        <button class="btn btn-hero" data-scroll="#demo">Start interview</button>
+      </div>
+
+      <button id="menu-toggle" class="menu-toggle" aria-label="Open menu" aria-expanded="false">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <line x1="3" y1="6" x2="21" y2="6" />
+          <line x1="3" y1="12" x2="21" y2="12" />
+          <line x1="3" y1="18" x2="21" y2="18" />
+        </svg>
+      </button>
+    </div>
+
+    <div id="mobile-nav" class="mobile-nav">
+      <div class="container mobile-nav-inner">
+        <a href="#features">Features</a>
+        <a href="#workflow">How it works</a>
+        <a href="#demo">Try it</a>
+        <a href="#faq">FAQ</a>
+        <div class="mobile-cta">
+          <button class="btn btn-glass" data-scroll="#demo">Sign in</button>
+          <button class="btn btn-hero" data-scroll="#demo">Start interview</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- HERO -->
+    <section class="section hero">
+      <div class="container hero-inner">
+        <div class="badge glass reveal">
+          <span class="pulse-dot"></span>
+          Architect AI · Private beta
+        </div>
+        <h1 class="reveal">From idea to <span class="text-gradient">architecture</span>,<br /> in one interview.</h1>
+        <p class="lead reveal">Architect AI interviews you, analyzes your skills and goals, then generates a
+          production-ready blueprint — stack, schema, APIs, roadmap, and resume impact.</p>
+        <div class="hero-cta reveal">
+          <button class="btn btn-hero btn-xl" data-scroll="#demo">
+            Start the interview
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="5" y1="12" x2="19" y2="12" />
+              <polyline points="12 5 19 12 12 19" />
+            </svg>
+          </button>
+          <button class="btn btn-glass btn-xl" id="open-sample">See a sample blueprint</button>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats reveal">
+          <div class="stat"><span class="stat-num" data-count="14" data-suffix=" min">0</span><span
+              class="stat-label">Avg. interview</span></div>
+          <div class="stat-sep"></div>
+          <div class="stat"><span class="stat-num" data-count="6" data-suffix="">0</span><span
+              class="stat-label">Artifacts per run</span></div>
+          <div class="stat-sep"></div>
+          <div class="stat"><span class="stat-num" data-count="98" data-suffix="%">0</span><span
+              class="stat-label">Blueprint accuracy</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="section" id="features">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">What you get</p>
+          <h2>A complete blueprint — not a one-page summary.</h2>
+          <p class="muted">Six artifacts, every run. Hover to inspect each one.</p>
+        </div>
+        <div class="feature-grid"></div>
+      </div>
+    </section>
+
+    <!-- WORKFLOW -->
+    <section class="section" id="workflow">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">How it works</p>
+          <h2>Three steps. About fifteen minutes.</h2>
+        </div>
+        <ol class="workflow-grid"></ol>
+      </div>
+    </section>
+
+    <!-- DEMO -->
+    <section class="section" id="demo">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">Try it now</p>
+          <h2>Run a mini interview.</h2>
+          <p class="muted">Answer four quick questions. We'll generate your blueprint preview in real time.</p>
+        </div>
+
+        <div class="demo glass reveal">
+          <div class="demo-side demo-chat">
+            <div class="demo-header">
+              <span class="dot red"></span><span class="dot yellow"></span><span class="dot green"></span>
+              <span class="demo-title">architect-ai · session</span>
+            </div>
+            <div class="messages" id="messages"></div>
+            <form id="answer-form" class="answer-form" autocomplete="off">
+              <div class="options" id="options"></div>
+              <div class="input-row">
+                <input type="text" id="answer-input" placeholder="Or type your answer…" />
+                <button type="submit" class="btn btn-hero">Send</button>
+              </div>
+              <div class="progress-wrap">
+                <div class="progress-bar">
+                  <div class="progress-fill" id="progress-fill"></div>
+                </div>
+                <span id="progress-label" class="mono">Question 1 / 4</span>
+              </div>
+            </form>
+          </div>
+
+          <div class="demo-side demo-blueprint">
+            <div class="demo-header">
+              <span class="bp-tab active">Blueprint</span>
+              <span class="bp-tab">Schema</span>
+              <span class="bp-tab">Roadmap</span>
+            </div>
+            <div class="blueprint" id="blueprint">
+              <div class="bp-empty">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+                  stroke-linejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                </svg>
+                <p>Your blueprint will materialize here as you answer.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section" id="faq">
+      <div class="container">
+        <div class="section-head reveal">
+          <p class="kicker">FAQ</p>
+          <h2>Questions, answered.</h2>
+        </div>
+        <div class="faq-list" id="faq-list"></div>
+      </div>
+    </section>
+
+    <!-- CTA -->
+    <section class="section cta-band">
+      <div class="container">
+        <div class="cta-card glass reveal">
+          <h2>Ready to architect your next project?</h2>
+          <p class="muted">Fifteen minutes from now, you'll have a blueprint you'd actually ship.</p>
+          <button class="btn btn-hero btn-xl" data-scroll="#demo">Start your interview →</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <div class="footer-brand">
+        <a href="#" class="brand">
+          <span class="brand-glyph">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M3 21 12 4l9 17" />
+              <path d="M7.5 14h9" />
+            </svg>
+          </span>
+          <span class="brand-text">Architect<span class="accent"> AI</span></span>
+        </a>
+        <p class="muted small">From idea to architecture, in one interview.</p>
+      </div>
+      <nav class="footer-nav" aria-label="Footer">
+        <div><span class="col-head">Product</span><a href="#features">Features</a><a href="#workflow">How it works</a><a
+            href="#demo">Try it</a><a href="#faq">FAQ</a></div>
+      </nav>
+    </div>
+    <div class="footer-bottom">
+      <div class="container footer-bottom-inner">
+        <span>© <span id="year"></span> Architect AI. All rights reserved.</span>
+        <span class="mono">v0.3 · interactive</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- SAMPLE BLUEPRINT MODAL -->
+  <div class="modal" id="sample-modal" aria-hidden="true">
+    <div class="modal-backdrop" data-close-modal></div>
+    <div class="modal-card glass" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+      <button class="modal-close" data-close-modal aria-label="Close">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+          stroke-linejoin="round">
+          <line x1="18" y1="6" x2="6" y2="18" />
+          <line x1="6" y1="6" x2="18" y2="18" />
+        </svg>
+      </button>
+      <p class="kicker">Sample · Recipe-sharing PWA</p>
+      <h3 id="modal-title">Blueprint preview</h3>
+      <div class="modal-grid">
+        <div class="modal-block">
+          <span class="block-label">Stack</span>
+          <ul>
+            <li>Next.js 15 (App Router)</li>
+            <li>Supabase (Postgres + Auth)</li>
+            <li>Tailwind + shadcn/ui</li>
+            <li>Vercel · Edge runtime</li>
+          </ul>
+        </div>
+        <div class="modal-block">
+          <span class="block-label">Schema</span>
+          <ul>
+            <li>users (id, handle, avatar)</li>
+            <li>recipes (id, author_id, title, body)</li>
+            <li>ingredients (recipe_id, name, qty)</li>
+            <li>likes (user_id, recipe_id)</li>
+          </ul>
+        </div>
+        <div class="modal-block">
+          <span class="block-label">API surface</span>
+          <ul>
+            <li>GET /api/recipes</li>
+            <li>POST /api/recipes</li>
+            <li>POST /api/recipes/:id/like</li>
+            <li>GET /api/users/:handle</li>
+          </ul>
+        </div>
+        <div class="modal-block">
+          <span class="block-label">Resume impact</span>
+          <ul>
+            <li>Edge-rendered PWA at scale</li>
+            <li>Auth + RLS with Supabase</li>
+            <li>Full-stack TypeScript</li>
+            <li>CI/CD on Vercel</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+
+</html>
