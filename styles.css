@@ -81,7 +81,6 @@ svg {
   max-width: 100%
 }
 
-/* Backdrop layers */
 .grid-bg {
   position: fixed;
   inset: 0;
@@ -126,7 +125,6 @@ svg {
   }
 }
 
-/* Header */
 header {
   position: sticky;
   top: 0;
@@ -286,7 +284,6 @@ header.scrolled {
   margin-top: 8px
 }
 
-/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
@@ -355,7 +352,6 @@ header.scrolled {
   border-radius: 14px
 }
 
-/* Section primitives */
 .section {
   padding: 88px 0;
   position: relative
@@ -524,7 +520,6 @@ header.scrolled {
   font-size: 13px
 }
 
-/* Reveal anim */
 .reveal {
   opacity: 0;
   transform: translateY(20px);
@@ -536,7 +531,6 @@ header.scrolled {
   transform: translateY(0)
 }
 
-/* Features */
 .feature-grid {
   display: grid;
   gap: 16px;
@@ -622,7 +616,6 @@ header.scrolled {
   position: relative
 }
 
-/* Workflow */
 .workflow-grid {
   margin: 56px 0 0;
   display: grid;
@@ -683,7 +676,6 @@ header.scrolled {
   line-height: 1.6
 }
 
-/* DEMO */
 .demo {
   margin-top: 56px;
   border-radius: 22px;
@@ -999,7 +991,6 @@ header.scrolled {
   }
 }
 
-/* FAQ */
 .faq-list {
   margin: 48px auto 0;
   max-width: 680px
@@ -1061,7 +1052,6 @@ header.scrolled {
   padding: 0 0 18px
 }
 
-/* CTA band */
 .cta-band {
   padding: 48px 0 96px
 }
@@ -1097,7 +1087,6 @@ header.scrolled {
   margin-top: 8px
 }
 
-/* Modal */
 .modal {
   position: fixed;
   inset: 0;
@@ -1228,7 +1217,6 @@ header.scrolled {
   color: var(--primary)
 }
 
-/* Footer */
 footer {
   margin-top: 32px;
   border-top: 1px solid var(--border)
@@ -1327,14 +1315,12 @@ footer {
   color: var(--muted-2)
 }
 
-/* Focus */
 :focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
   border-radius: 6px
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px
