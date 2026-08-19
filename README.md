@@ -1,392 +1,102 @@
-# 🚀 Architect AI
+# Architect AI — Interactive Landing Page
 
-> **From Idea to Architecture — In One Interview**
+> From idea to architecture, in one interview.
 
-Architect AI is a premium interactive landing page that demonstrates how an AI-powered software architect can transform a simple product idea into a production-ready software blueprint.
+A dark, cyberpunk-styled landing page for **Architect AI**, a concept product that interviews developers about their project idea and generates a blueprint — recommended stack, roadmap, and resume impact — in real time. This repo is the marketing/demo front end: a fully static, framework-free site with a working mock interview built in vanilla JS.
 
-Instead of showing static marketing content, Architect AI allows visitors to experience a mini AI interview that dynamically generates a live architecture preview based on their answers.
+## Live demo flow
 
----
+Scroll to the **"Try it now"** section and the interview starts automatically. Answer four questions (via the quick-reply chips or by typing your own answer) and watch the blueprint panel fill in live:
 
-## ✨ Overview
+1. What are you building?
+2. Who is it for?
+3. What's your strongest stack?
+4. How soon do you want v1 shipped?
 
-Architect AI is designed as a futuristic SaaS landing page that showcases an AI product capable of interviewing developers, understanding their project requirements, and producing a complete software architecture including:
+Based on your answers, the app generates:
+- A **recommended stack** (matched against your stated skill)
+- A **roadmap** (scaled to your chosen timeline — weekend sprint through 3-month build)
+- A **resume impact** line summarizing the shipped project
 
-- Technology Stack
-- Database Design
-- API Structure
-- Development Roadmap
-- Deployment Strategy
-- Resume Impact
+Click **Restart interview** to run it again.
 
-This project is built entirely with **HTML, CSS, and Vanilla JavaScript** without any frameworks.
+## Tech stack
 
----
+No frameworks, no build step — just three files:
 
-# 📸 Preview
+| File         | Purpose                                                              |
+|--------------|-----------------------------------------------------------------------|
+| `index.html` | Page structure and markup                                            |
+| `styles.css` | All styling — dark theme, glassmorphism, animations, responsive layout |
+| `script.js`  | All behavior — interview engine, blueprint generation, UI interactions |
 
-### Landing Page
+Fonts (Google Fonts, loaded via CDN): **Inter** (body), **Space Grotesk** (display/headings), **JetBrains Mono** (code/labels).
 
-- Modern SaaS UI
-- Animated Hero Section
-- Interactive Feature Cards
-- Particle Background
-- Glassmorphism Design
-
----
-
-### Interactive AI Interview
-
-Visitors answer several questions and instantly receive a live blueprint preview.
-
-Example:
+## Project structure
 
 ```
-Project Idea
-↓
-
-Target Users
-↓
-
-Preferred Tech Stack
-↓
-
-Timeline
-↓
-
-Generated Architecture
-```
-
----
-
-### Blueprint Panel
-
-The right panel dynamically updates while users answer questions.
-
-Generated sections include:
-
-- Project Idea
-- Users
-- Stack Recommendation
-- Development Roadmap
-- Resume Impact
-
----
-
-# ✨ Features
-
-## 🎯 Interactive AI Interview
-
-A conversational interface that simulates an AI architect asking project-related questions.
-
----
-
-## 📄 Live Blueprint Generator
-
-Blueprint updates in real-time based on user responses.
-
----
-
-## ⚡ Smooth Animations
-
-- Reveal animations
-- Hover effects
-- Animated counters
-- Typing indicator
-- Smooth scrolling
-- Progress bar animations
-
----
-
-## 🌌 Interactive Background
-
-- Canvas Particle Network
-- Cursor Glow Effect
-- Dynamic Grid Background
-
----
-
-## 🎨 Premium UI
-
-- Dark futuristic theme
-- Glassmorphism
-- Responsive layout
-- Gradient accents
-- Modern typography
-
----
-
-## 📱 Fully Responsive
-
-Optimized for:
-
-- Desktop
-- Tablet
-- Mobile
-
----
-
-## 📊 Animated Statistics
-
-Includes animated metrics like:
-
-- Average Interview Time
-- Generated Artifacts
-- Blueprint Accuracy
-
----
-
-## ❓ FAQ Accordion
-
-Interactive FAQ section with smooth expand/collapse animations.
-
----
-
-## 📋 Sample Blueprint Modal
-
-Visitors can preview a complete example software architecture without completing the interview.
-
----
-
-## ⚙️ Technologies Used
-
-### Frontend
-
-- HTML5
-- CSS3
-- Vanilla JavaScript (ES6)
-
----
-
-### Browser APIs
-
-- Canvas API
-- Intersection Observer API
-- requestAnimationFrame
-- DOM API
-- Scroll API
-
----
-
-### Fonts
-
-- Inter
-- Space Grotesk
-- JetBrains Mono
-
----
-
-# 📂 Project Structure
-
-```
-Architect-AI/
-│
-├── index.html
-├── styles.css
-├── script.js
-│
+architect-ai/
+├── index.html      # Markup for header, hero, features, workflow, demo, FAQ, footer, modal
+├── styles.css       # Design tokens (CSS variables) + component styles
+├── script.js        # Content data + interview logic + all interactivity
 └── README.md
 ```
 
----
+## Running it locally
 
-# 🧠 Architecture
+No install, no server required.
 
-```
-User
- │
- ▼
+1. Make sure all three files (`index.html`, `styles.css`, `script.js`) are in the **same folder**, with those **exact filenames**.
+2. Open `index.html` directly in a browser (double-click it, or drag it into a browser tab).
 
-Landing Page
-
- │
- ▼
-
-Interactive Interview
-
- │
- ▼
-
-Answer Collection
-
- │
- ▼
-
-Blueprint Generator
-
- │
- ▼
-
-Live Preview Panel
-```
-
----
-
-# 🎯 Core Components
-
-## Hero Section
-
-- Product Introduction
-- CTA Buttons
-- Animated Stats
-
----
-
-## Features Section
-
-Dynamic feature cards generated from JavaScript data.
-
----
-
-## Workflow Section
-
-Three-step process explaining how Architect AI works.
-
----
-
-## Interview Demo
-
-Interactive conversation system featuring:
-
-- Bot messages
-- User replies
-- Suggested answer chips
-- Manual text input
-- Typing animation
-- Progress tracking
-
----
-
-## Blueprint Generator
-
-Updates dynamically after every answer.
-
-Generates:
-
-- Project Idea
-- Target Users
-- Recommended Stack
-- Timeline
-- Resume Summary
-
----
-
-## FAQ
-
-Animated accordion built entirely with Vanilla JavaScript.
-
----
-
-## Sample Blueprint
-
-Modal window displaying a production-ready architecture example.
-
----
-
-# 🚀 Getting Started
-
-## Clone Repository
+Optional — if you prefer serving it over `http://` instead of `file://` (e.g. for consistent font loading):
 
 ```bash
-git clone https://github.com/yourusername/architect-ai.git
+# Python
+python3 -m http.server 8000
+
+# Node
+npx serve .
 ```
 
----
+Then visit `http://localhost:8000`.
 
-## Open Project
+## Features implemented
 
-Simply open:
+- **Sticky, blurred header** that activates on scroll, with a mobile hamburger menu
+- **Animated hero** with gradient text, a live particle-network canvas background, and a cursor-following glow
+- **Feature grid** with mouse-tracking spotlight hover effect
+- **3-step "how it works"** section
+- **Interactive interview demo**
+  - Typewriter-style bot replies
+  - Typing indicator between messages
+  - Quick-reply chips or free-text input
+  - Progress bar synced to question count
+  - Live-streaming blueprint panel (stack, roadmap, resume impact)
+  - Restart flow that fully resets state and UI
+- **Sample blueprint modal** — a static example blueprint for a recipe-sharing PWA, closable via button, backdrop click, or `Esc`
+- **FAQ accordion**
+- **Animated stat counters** (interview time, artifacts per run, blueprint accuracy) that count up when scrolled into view
+- **Scroll-reveal animations** on all major sections
+- Respects `prefers-reduced-motion` (disables animation timing)
 
-```
-index.html
-```
+## Customizing content
 
-No installation required.
+Everything text-based lives in `script.js` as plain data objects near the top of the file — edit these directly, no markup changes needed:
 
-No build tools required.
+- `FEATURES` — the 6 feature cards
+- `STEPS` — the 3-step workflow cards
+- `FAQ` — question/answer pairs
+- `QUESTIONS` — the interview script (id, bot message, quick-reply options, blueprint label)
 
-No dependencies.
+The stack recommendation logic lives in `recommendStack()`, and the timeline-based roadmaps live in `generateRoadmap()` — both are plain functions you can extend with new cases.
 
----
+## Known limitations
 
-# 🎨 UI Highlights
+- The interview logic is a **client-side mock** — it pattern-matches your answers to canned stack/roadmap templates. It does not call any AI model or backend.
+- The **Schema** and **Roadmap** tabs above the blueprint panel are visual only (not wired to switch views yet).
+- No blueprint export (Markdown/PDF/share link) is implemented — this is referenced in the FAQ as a planned feature.
 
-- Glassmorphism
-- Gradient Buttons
-- Animated Cards
-- Hover Spotlights
-- Particle Background
-- Cursor Glow
-- Premium Typography
-- Smooth Reveal Animations
-- Interactive Modal
-- Animated Counters
+## Status
 
----
-
-# 📈 Future Improvements
-
-- Real AI Integration
-- Dify Workflow Integration
-- GPT/Claude API Support
-- Authentication
-- User Dashboard
-- Blueprint Export (PDF/Markdown)
-- Project Saving
-- Team Collaboration
-- Architecture Diagram Generation
-- Database Schema Visualization
-- REST & GraphQL Generation
-- Deployment Recommendations
-- CI/CD Pipeline Generator
-- Cost Estimation
-- Interactive Architecture Canvas
-
----
-
-# 💡 Learning Outcomes
-
-Building this project demonstrates knowledge of:
-
-- Modern UI Design
-- DOM Manipulation
-- Component-Based JavaScript
-- Canvas Animations
-- Browser APIs
-- Responsive Design
-- Animation Techniques
-- State Management
-- Event Handling
-- User Experience Design
-- Software Architecture Visualization
-
----
-
-# 🎯 Why This Project?
-
-Architect AI is more than a landing page—it showcases the vision of an AI-powered software architect.
-
-It demonstrates:
-
-- Product thinking
-- Frontend engineering
-- User experience design
-- Interactive storytelling
-- Modern SaaS aesthetics
-- Clean JavaScript architecture
-
-making it an excellent portfolio centerpiece for frontend developers and aspiring AI product builders.
-
----
-
-# 📜 License
-
-This project is open-source and available under the **MIT License**.
-
----
-
-# 👨‍💻 Author
-
-**Darshil Gehlot**
-
-Building the next generation of AI-powered developer tools and software architecture assistants.
+Private beta — interactive landing page only. Code generation / scaffolding is a planned later phase (see FAQ section on the page).
