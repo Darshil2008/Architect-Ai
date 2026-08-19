@@ -1,6 +1,9 @@
 /* Architect AI — Interactive landing JS */
 
-// ---------- Data ----------
+// ============================================================
+// DATA
+// ============================================================
+
 const FEATURES = [
   {
     icon: '<path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0-2 7.5A4 4 0 0 0 9 22h6a4 4 0 0 0 3-7.5A4 4 0 0 0 16 7V6a4 4 0 0 0-4-4z"/>',
@@ -35,9 +38,21 @@ const FEATURES = [
 ];
 
 const STEPS = [
-  { n: "01", title: "Interview", body: "A guided conversation captures your idea, audience, skills, and constraints." },
-  { n: "02", title: "Analysis", body: "The engine reasons over your profile to pick the stack, scope, and architecture." },
-  { n: "03", title: "Blueprint", body: "You receive a complete plan: roadmap, schema, APIs, deployment, and resume impact." },
+  {
+    n: "01",
+    title: "Interview",
+    body: "A guided conversation captures your idea, audience, skills, and constraints."
+  },
+  {
+    n: "02",
+    title: "Analysis",
+    body: "The engine reasons over your profile to pick the stack, scope, and architecture."
+  },
+  {
+    n: "03",
+    title: "Blueprint",
+    body: "You receive a complete plan: roadmap, schema, APIs, deployment, and resume impact."
+  },
 ];
 
 const FAQ = [
@@ -59,540 +74,1210 @@ const FAQ = [
   },
 ];
 
-// Interview script
+// ============================================================
+// INTERVIEW QUESTIONS
+// ============================================================
+
 const QUESTIONS = [
   {
     id: "idea",
     bot: "Hey 👋 I'm Architect. In one line, what are you building?",
-    options: ["A SaaS dashboard", "A social mobile app", "An AI tool", "An e-commerce site"],
+    options: [
+      "A SaaS dashboard",
+      "A social mobile app",
+      "An AI tool",
+      "An e-commerce site"
+    ],
     blueprintLabel: "Project idea"
   },
+
   {
     id: "users",
     bot: "Got it. Who is it for?",
-    options: ["Developers", "Small businesses", "Consumers", "Enterprise teams"],
+    options: [
+      "Developers",
+      "Small businesses",
+      "Consumers",
+      "Enterprise teams"
+    ],
     blueprintLabel: "Target users"
   },
+
   {
     id: "skill",
     bot: "What's your strongest stack right now?",
-    options: ["React + Node", "Next.js + Postgres", "Python + FastAPI", "Beginner — pick for me"],
+    options: [
+      "React + Node",
+      "Next.js + Postgres",
+      "Python + FastAPI",
+      "Beginner — pick for me"
+    ],
     blueprintLabel: "Primary stack"
   },
+
   {
     id: "scope",
     bot: "Last one — how soon do you want a v1 shipped?",
-    options: ["This weekend", "Two weeks", "One month", "Three months"],
+    options: [
+      "This weekend",
+      "Two weeks",
+      "One month",
+      "Two months",
+      "Three months"
+    ],
     blueprintLabel: "Target timeline"
-  },
+  }
 ];
 
-// ---------- Render: Features ----------
-const featureGrid = document.querySelector(".feature-grid");
-featureGrid.innerHTML = FEATURES.map(
-  f => `
-  <div class="feature-card reveal">
-    <div class="feature-icon">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${f.icon}</svg>
-    </div>
-    <h3>${f.title}</h3>
-    <p>${f.body}</p>
-  </div>`
-).join("");
+// ============================================================
+// RENDER FEATURES
+// ============================================================
 
-// Spotlight hover on feature cards
+const featureGrid = document.querySelector(".feature-grid");
+
+if (featureGrid) {
+  featureGrid.innerHTML = FEATURES.map(f => `
+    <div class="feature-card reveal">
+      <div class="feature-icon">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          ${f.icon}
+        </svg>
+      </div>
+
+      <h3>${f.title}</h3>
+      <p>${f.body}</p>
+    </div>
+  `).join("");
+}
+
+// Spotlight hover
 document.querySelectorAll(".feature-card").forEach(card => {
   card.addEventListener("mousemove", e => {
     const r = card.getBoundingClientRect();
-    card.style.setProperty("--mx", (e.clientX - r.left) + "px");
-    card.style.setProperty("--my", (e.clientY - r.top) + "px");
+
+    card.style.setProperty(
+      "--mx",
+      (e.clientX - r.left) + "px"
+    );
+
+    card.style.setProperty(
+      "--my",
+      (e.clientY - r.top) + "px"
+    );
   });
 });
 
-// ---------- Render: Workflow ----------
+// ============================================================
+// RENDER WORKFLOW
+// ============================================================
+
 const workflowGrid = document.querySelector(".workflow-grid");
-workflowGrid.innerHTML = STEPS.map(
-  (s, i) => `
-  <li class="step reveal">
-    <span class="step-num" aria-hidden="true">${s.n}</span>
-    <span class="step-kicker">Step ${i + 1}</span>
-    <h3>${s.title}</h3>
-    <p>${s.body}</p>
-  </li>`
-).join("");
 
-// ---------- Render: FAQ ----------
+if (workflowGrid) {
+  workflowGrid.innerHTML = STEPS.map((s, i) => `
+    <li class="step reveal">
+      <span class="step-num" aria-hidden="true">${s.n}</span>
+      <span class="step-kicker">Step ${i + 1}</span>
+
+      <h3>${s.title}</h3>
+      <p>${s.body}</p>
+    </li>
+  `).join("");
+}
+
+// ============================================================
+// RENDER FAQ
+// ============================================================
+
 const faqList = document.getElementById("faq-list");
-faqList.innerHTML = FAQ.map(
-  (item, i) => `
-  <div class="faq-item reveal" data-i="${i}">
-    <button class="faq-q" aria-expanded="false">
-      <span>${item.q}</span>
-      <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-    <div class="faq-a"><div class="faq-a-inner">${item.a}</div></div>
-  </div>`
-).join("");
 
-faqList.querySelectorAll(".faq-item").forEach(item => {
-  item.querySelector(".faq-q").addEventListener("click", () => {
-    const open = item.classList.toggle("open");
-    item.querySelector(".faq-q").setAttribute("aria-expanded", open);
+if (faqList) {
+  faqList.innerHTML = FAQ.map((item, i) => `
+    <div class="faq-item reveal" data-i="${i}">
+      <button
+        class="faq-q"
+        aria-expanded="false"
+        type="button"
+      >
+        <span>${item.q}</span>
+
+        <svg
+          class="faq-chevron"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+
+      <div class="faq-a">
+        <div class="faq-a-inner">
+          ${item.a}
+        </div>
+      </div>
+    </div>
+  `).join("");
+
+  faqList.querySelectorAll(".faq-item").forEach(item => {
+    const button = item.querySelector(".faq-q");
+
+    button.addEventListener("click", () => {
+      const open = item.classList.toggle("open");
+
+      button.setAttribute(
+        "aria-expanded",
+        open
+      );
+    });
   });
-});
+}
 
-// ---------- Sticky header ----------
+// ============================================================
+// STICKY HEADER
+// ============================================================
+
 const header = document.getElementById("site-header");
-const onScroll = () => header.classList.toggle("scrolled", window.scrollY > 12);
-window.addEventListener("scroll", onScroll, { passive: true });
-onScroll();
 
-// ---------- Mobile nav ----------
+if (header) {
+  const onScroll = () => {
+    header.classList.toggle(
+      "scrolled",
+      window.scrollY > 12
+    );
+  };
+
+  window.addEventListener(
+    "scroll",
+    onScroll,
+    { passive: true }
+  );
+
+  onScroll();
+}
+
+// ============================================================
+// MOBILE NAV
+// ============================================================
+
 const toggle = document.getElementById("menu-toggle");
 const mobileNav = document.getElementById("mobile-nav");
-toggle.addEventListener("click", () => {
-  const open = mobileNav.classList.toggle("open");
-  toggle.setAttribute("aria-expanded", open);
-});
-mobileNav.querySelectorAll("a").forEach(a =>
-  a.addEventListener("click", () => mobileNav.classList.remove("open"))
-);
 
-// ---------- Smooth scroll ----------
-function scrollToHash(hash) {
-  const el = document.querySelector(hash);
-  if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+if (toggle && mobileNav) {
+  toggle.addEventListener("click", () => {
+    const open = mobileNav.classList.toggle("open");
+
+    toggle.setAttribute(
+      "aria-expanded",
+      open
+    );
+  });
+
+  mobileNav.querySelectorAll("a").forEach(a => {
+    a.addEventListener("click", () => {
+      mobileNav.classList.remove("open");
+    });
+  });
 }
+
+// ============================================================
+// SMOOTH SCROLL
+// ============================================================
+
+function scrollToHash(hash) {
+  if (!hash) return;
+
+  const el = document.querySelector(hash);
+
+  if (el) {
+    el.scrollIntoView({
+      behavior: "smooth",
+      block: "start"
+    });
+  }
+}
+
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener("click", e => {
     const id = a.getAttribute("href");
+
     if (id && id.length > 1) {
       e.preventDefault();
       scrollToHash(id);
     }
   });
 });
+
 document.querySelectorAll("[data-scroll]").forEach(b => {
-  b.addEventListener("click", () => scrollToHash(b.dataset.scroll));
+  b.addEventListener("click", () => {
+    scrollToHash(b.dataset.scroll);
+  });
 });
 
-// ---------- Reveal on scroll ----------
-const io = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting) {
-      e.target.classList.add("visible");
-      io.unobserve(e.target);
-    }
-  });
-}, { threshold: 0.12 });
-document.querySelectorAll(".reveal").forEach(el => io.observe(el));
+// ============================================================
+// REVEAL ON SCROLL
+// ============================================================
 
-// ---------- Animated stat counters ----------
-const statIO = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (!e.isIntersecting) return;
-    const el = e.target;
-    const end = parseFloat(el.dataset.count);
-    const suffix = el.dataset.suffix || "";
-    const dur = 1400;
-    const start = performance.now();
-    const tick = now => {
-      const p = Math.min(1, (now - start) / dur);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(end * eased) + suffix;
-      if (p < 1) requestAnimationFrame(tick);
-    };
-    requestAnimationFrame(tick);
-    statIO.unobserve(el);
-  });
-}, { threshold: 0.5 });
-document.querySelectorAll(".stat-num").forEach(s => statIO.observe(s));
+const io = new IntersectionObserver(
+  entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add("visible");
+        io.unobserve(e.target);
+      }
+    });
+  },
+  {
+    threshold: 0.12
+  }
+);
 
-// ---------- Cursor glow (desktop) ----------
+document
+  .querySelectorAll(".reveal")
+  .forEach(el => io.observe(el));
+
+// ============================================================
+// ANIMATED STAT COUNTERS
+// ============================================================
+
+const statIO = new IntersectionObserver(
+  entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+
+      const el = e.target;
+      const end = parseFloat(el.dataset.count);
+      const suffix = el.dataset.suffix || "";
+
+      const dur = 1400;
+      const start = performance.now();
+
+      const tick = now => {
+        const p = Math.min(
+          1,
+          (now - start) / dur
+        );
+
+        const eased =
+          1 - Math.pow(1 - p, 3);
+
+        el.textContent =
+          Math.round(end * eased) + suffix;
+
+        if (p < 1) {
+          requestAnimationFrame(tick);
+        }
+      };
+
+      requestAnimationFrame(tick);
+
+      statIO.unobserve(el);
+    });
+  },
+  {
+    threshold: 0.5
+  }
+);
+
+document
+  .querySelectorAll(".stat-num")
+  .forEach(s => statIO.observe(s));
+
+// ============================================================
+// CURSOR GLOW
+// ============================================================
+
 const glow = document.getElementById("cursor-glow");
-if (window.matchMedia("(hover:hover)").matches) {
+
+if (
+  glow &&
+  window.matchMedia("(hover:hover)").matches
+) {
   window.addEventListener("mousemove", e => {
     glow.classList.add("active");
-    glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
+
+    glow.style.transform =
+      `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
   });
-  window.addEventListener("mouseleave", () => glow.classList.remove("active"));
+
+  window.addEventListener("mouseleave", () => {
+    glow.classList.remove("active");
+  });
 }
 
-// ---------- Particle network ----------
+// ============================================================
+// PARTICLE NETWORK
+// ============================================================
+
 (() => {
-  const canvas = document.getElementById("particles");
+  const canvas =
+    document.getElementById("particles");
+
+  if (!canvas) return;
+
   const ctx = canvas.getContext("2d");
-  let w, h, particles = [];
-  const COUNT = window.innerWidth < 768 ? 28 : 56;
+
+  let w;
+  let h;
+  let particles = [];
+
+  const COUNT =
+    window.innerWidth < 768
+      ? 28
+      : 56;
 
   function resize() {
-    w = canvas.width = window.innerWidth;
-    h = canvas.height = window.innerHeight;
+    w = canvas.width =
+      window.innerWidth;
+
+    h = canvas.height =
+      window.innerHeight;
   }
 
   function init() {
-    particles = Array.from({ length: COUNT }, () => ({
-      x: Math.random() * w,
-      y: Math.random() * h,
-      vx: (Math.random() - 0.5) * 0.3,
-      vy: (Math.random() - 0.5) * 0.3,
-      r: Math.random() * 1.6 + 0.6
-    }));
+    particles =
+      Array.from(
+        { length: COUNT },
+        () => ({
+          x: Math.random() * w,
+          y: Math.random() * h,
+
+          vx:
+            (Math.random() - 0.5) *
+            0.3,
+
+          vy:
+            (Math.random() - 0.5) *
+            0.3,
+
+          r:
+            Math.random() * 1.6 +
+            0.6
+        })
+      );
   }
 
   function step() {
-    ctx.clearRect(0, 0, w, h);
+    ctx.clearRect(
+      0,
+      0,
+      w,
+      h
+    );
+
     for (const p of particles) {
       p.x += p.vx;
       p.y += p.vy;
-      if (p.x < 0 || p.x > w) p.vx *= -1;
-      if (p.y < 0 || p.y > h) p.vy *= -1;
+
+      if (
+        p.x < 0 ||
+        p.x > w
+      ) {
+        p.vx *= -1;
+      }
+
+      if (
+        p.y < 0 ||
+        p.y > h
+      ) {
+        p.vy *= -1;
+      }
+
       ctx.beginPath();
-      ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = "rgba(139,148,255,.55)";
+
+      ctx.arc(
+        p.x,
+        p.y,
+        p.r,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle =
+        "rgba(139,148,255,.55)";
+
       ctx.fill();
     }
-    for (let i = 0; i < particles.length; i++) {
-      for (let j = i + 1; j < particles.length; j++) {
-        const a = particles[i],
-          b = particles[j];
-        const dx = a.x - b.x,
-          dy = a.y - b.y,
-          d = Math.hypot(dx, dy);
+
+    for (
+      let i = 0;
+      i < particles.length;
+      i++
+    ) {
+      for (
+        let j = i + 1;
+        j < particles.length;
+        j++
+      ) {
+        const a = particles[i];
+        const b = particles[j];
+
+        const dx =
+          a.x - b.x;
+
+        const dy =
+          a.y - b.y;
+
+        const d =
+          Math.hypot(
+            dx,
+            dy
+          );
+
         if (d < 130) {
           ctx.beginPath();
-          ctx.moveTo(a.x, a.y);
-          ctx.lineTo(b.x, b.y);
-          ctx.strokeStyle = `rgba(99,102,241,${(1 - d / 130) * 0.18})`;
+
+          ctx.moveTo(
+            a.x,
+            a.y
+          );
+
+          ctx.lineTo(
+            b.x,
+            b.y
+          );
+
+          ctx.strokeStyle =
+            `rgba(99,102,241,${(1 - d / 130) * 0.18})`;
+
           ctx.lineWidth = 1;
+
           ctx.stroke();
         }
       }
     }
+
     requestAnimationFrame(step);
   }
 
   resize();
   init();
   step();
-  window.addEventListener("resize", () => {
-    resize();
-    init();
-  });
+
+  window.addEventListener(
+    "resize",
+    () => {
+      resize();
+      init();
+    }
+  );
 })();
 
-// ---------- Interactive interview demo ----------
-const messagesEl = document.getElementById("messages");
-const optionsEl = document.getElementById("options");
-const inputEl = document.getElementById("answer-input");
-const formEl = document.getElementById("answer-form");
-const fillEl = document.getElementById("progress-fill");
-const progLabel = document.getElementById("progress-label");
-const blueprintEl = document.getElementById("blueprint");
+// ============================================================
+// INTERACTIVE INTERVIEW
+// ============================================================
+
+const messagesEl =
+  document.getElementById("messages");
+
+const optionsEl =
+  document.getElementById("options");
+
+const inputEl =
+  document.getElementById("answer-input");
+
+const formEl =
+  document.getElementById("answer-form");
+
+const fillEl =
+  document.getElementById("progress-fill");
+
+const progLabel =
+  document.getElementById("progress-label");
+
+const blueprintEl =
+  document.getElementById("blueprint");
+
 const answers = {};
+
 let qIndex = 0;
 
-// ---- AI Thinking Panel ----
-let thinkingInterval = null;
-const thinkingMessages = [
-  "Analyzing scalability...",
-  "Considering authentication models...",
-  "Matching stack to your skill level...",
-  "Choosing optimal database...",
-  "Evaluating deployment options...",
-  "Weighing trade-offs for your timeline...",
-  "Estimating complexity...",
-  "Generating schema outline...",
-];
-let thinkingPanel = null;
+// ============================================================
+// AI MESSAGE
+// ============================================================
 
-function createThinkingPanel() {
-  if (thinkingPanel) return thinkingPanel;
-  // Inject panel right after the options area
-  thinkingPanel = document.createElement("div");
-  thinkingPanel.id = "thinking-panel";
-  thinkingPanel.className = "thinking-panel";
-  thinkingPanel.innerHTML = `<span class="thinking-text"></span>`;
-  optionsEl.insertAdjacentElement("afterend", thinkingPanel);
-  return thinkingPanel;
-}
+async function addMessage(
+  text,
+  who,
+  typing = false
+) {
+  if (!messagesEl) return;
 
-function startThinking() {
-  if (thinkingInterval) return;
-  const panel = createThinkingPanel();
-  const textEl = panel.querySelector(".thinking-text");
-  let idx = 0;
-  textEl.textContent = thinkingMessages[0];
-  thinkingInterval = setInterval(() => {
-    idx = (idx + 1) % thinkingMessages.length;
-    textEl.textContent = thinkingMessages[idx];
-    // Small fade animation
-    textEl.style.opacity = 0;
-    setTimeout(() => (textEl.style.opacity = 1), 100);
-  }, 1800);
-}
+  const el =
+    document.createElement("div");
 
-function stopThinking() {
-  if (thinkingInterval) {
-    clearInterval(thinkingInterval);
-    thinkingInterval = null;
-  }
-  if (thinkingPanel) {
-    thinkingPanel.remove();
-    thinkingPanel = null;
-  }
-}
+  el.className =
+    `msg ${who}`;
 
-// ---- Progress Timeline (premium) ----
-const progressSteps = [
-  "Understanding idea",
-  "Finding audience",
-  "Choosing stack",
-  "Building architecture",
-  "Finalizing blueprint"
-];
-
-function setProgress() {
-  const filled = qIndex / QUESTIONS.length;
-  fillEl.style.width = `${filled * 100}%`;
-
-  // Build the visual progress timeline inside progLabel
-  let html = '<div class="progress-timeline">';
-  progressSteps.forEach((step, i) => {
-    // Determine state based on current qIndex
-    // Questions 0-3 map to steps 0-3; step 4 (Finalizing) is only active when qIndex === 4
-    let state = "pending";
-    if (i < qIndex) state = "completed";
-    else if (i === qIndex && qIndex < QUESTIONS.length) state = "active";
-    else if (qIndex >= QUESTIONS.length && i === progressSteps.length - 1) state = "active";
-
-    const icon =
-      state === "completed"
-        ? "✓"
-        : state === "active"
-          ? "●"
-          : "○";
-    const cssClass = state === "completed" ? "done" : state === "active" ? "current" : "";
-    html += `<span class="step-indicator ${cssClass}">${icon} ${step}</span>`;
-  });
-  html += '</div>';
-  progLabel.innerHTML = html;
-}
-
-// ---- Blueprint streaming ----
-function recommendStack(a) {
-  const s = (a.skill || "").toLowerCase();
-  if (s.includes("next")) return "Next.js 15 · Postgres (Supabase) · Tailwind · Vercel Edge";
-  if (s.includes("python")) return "FastAPI · Postgres · React (Vite) · Fly.io";
-  if (s.includes("react")) return "React + Node/Express · Postgres · Railway";
-  return "Next.js 15 · Supabase · Tailwind · Vercel ← beginner-friendly default";
-}
-
-function generateRoadmap(scope) {
-  switch (scope) {
-    case "This weekend":
-      return `Day 1 — Project setup + authentication\nDay 2 — Core features\nDay 3 — Testing + deployment`;
-    case "Two weeks":
-      return `Week 1 — Database, authentication & backend\nWeek 2 — Frontend, testing & deployment`;
-    case "One month":
-      return `Week 1 — Planning + authentication\nWeek 2 — Core features\nWeek 3 — Advanced features\nWeek 4 — Testing, optimization & deployment`;
-    case "Three months":
-      return `Month 1 — Research, planning & MVP\nMonth 2 — Advanced features & integrations\nMonth 3 — Testing, scaling & production deployment`;
-    default:
-      return `Week 1 — Planning\nWeek 2 — Development\nWeek 3 — Testing\nWeek 4 — Deployment`;
-  }
-}
-
-async function appendBlueprintBlock(label, value) {
-  if (blueprintEl.querySelector(".bp-empty")) blueprintEl.innerHTML = "";
-  const block = document.createElement("div");
-  block.className = "bp-block";
-  block.innerHTML = `<div class="bp-label">${label}</div><div class="bp-content">${value.replace(/\n/g, "<br>")}</div>`;
-  blueprintEl.appendChild(block);
-  blueprintEl.scrollTop = blueprintEl.scrollHeight;
-}
-
-// Streaming helper: show a "Generating..." message, then replace with final content
-async function streamBlueprintBlock(label, finalValue, delay = 1200) {
-  const tempLabel = `Generating ${label}...`;
-  await appendBlueprintBlock(tempLabel, "");
-  const block = blueprintEl.lastElementChild;
-  const contentEl = block.querySelector(".bp-content");
-  // small pause then reveal final
-  await new Promise(r => setTimeout(r, delay));
-  block.querySelector(".bp-label").textContent = `✔ ${label}`;
-  contentEl.innerHTML = finalValue.replace(/\n/g, "<br>");
-  blueprintEl.scrollTop = blueprintEl.scrollHeight;
-}
-
-// ---- Interview flow with premium enhancements ----
-async function addMessage(text, who, typing = false) {
-  const el = document.createElement("div");
-  el.className = `msg ${who}`;
   messagesEl.appendChild(el);
 
-  if (who === "user" || !typing) {
+  // User messages
+  if (
+    who === "user" ||
+    !typing
+  ) {
     el.textContent = text;
-    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
     return el;
   }
 
+  // AI typing animation
   let i = 0;
-  while (i < text.length) {
-    el.textContent += text.charAt(i);
+
+  while (
+    i < text.length
+  ) {
+    el.textContent +=
+      text.charAt(i);
+
     i++;
-    messagesEl.scrollTop = messagesEl.scrollHeight;
-    await new Promise(resolve => setTimeout(resolve, 18));
+
+    messagesEl.scrollTop =
+      messagesEl.scrollHeight;
+
+    await new Promise(
+      resolve =>
+        setTimeout(
+          resolve,
+          18
+        )
+    );
   }
+
   return el;
 }
 
+// ============================================================
+// TYPING INDICATOR
+// ============================================================
+
 function showTyping() {
-  const t = document.createElement("div");
-  t.className = "msg bot typing";
-  t.innerHTML = "<span></span><span></span><span></span>";
+  if (!messagesEl) return null;
+
+  const t =
+    document.createElement("div");
+
+  t.className =
+    "msg bot typing";
+
+  t.innerHTML =
+    "<span></span><span></span><span></span>";
+
   messagesEl.appendChild(t);
-  messagesEl.scrollTop = messagesEl.scrollHeight;
+
+  messagesEl.scrollTop =
+    messagesEl.scrollHeight;
+
   return t;
 }
 
+// ============================================================
+// RENDER ANSWER OPTIONS
+// ============================================================
+
 function renderOptions(opts) {
-  optionsEl.innerHTML = opts.map(o => `<button type="button" class="option-chip">${o}</button>`).join("");
-  optionsEl.querySelectorAll(".option-chip").forEach(b =>
-    b.addEventListener("click", () => submitAnswer(b.textContent))
+  if (!optionsEl) return;
+
+  optionsEl.innerHTML =
+    opts
+      .map(
+        o =>
+          `<button type="button" class="option-chip">${o}</button>`
+      )
+      .join("");
+
+  optionsEl
+    .querySelectorAll(".option-chip")
+    .forEach(button => {
+      button.addEventListener(
+        "click",
+        () => {
+          submitAnswer(
+            button.textContent
+          );
+        }
+      );
+    });
+}
+
+// ============================================================
+// PROGRESS
+// ============================================================
+
+function setProgress() {
+  if (!fillEl || !progLabel) return;
+
+  const percentage =
+    (qIndex /
+      QUESTIONS.length) *
+    100;
+
+  fillEl.style.width =
+    `${percentage}%`;
+
+  progLabel.textContent =
+    qIndex >= QUESTIONS.length
+      ? "Complete"
+      : `Question ${qIndex + 1} / ${QUESTIONS.length}`;
+}
+
+// ============================================================
+// BLUEPRINT BLOCK
+// ============================================================
+
+function appendBlueprintBlock(
+  label,
+  value
+) {
+  if (!blueprintEl) return;
+
+  const empty =
+    blueprintEl.querySelector(
+      ".bp-empty"
+    );
+
+  if (empty) {
+    blueprintEl.innerHTML = "";
+  }
+
+  const block =
+    document.createElement("div");
+
+  block.className =
+    "bp-block";
+
+  block.innerHTML = `
+    <div class="bp-label">
+      ${label}
+    </div>
+
+    <div class="bp-content">
+      ${value}
+    </div>
+  `;
+
+  blueprintEl.appendChild(
+    block
   );
+
+  blueprintEl.scrollTop =
+    blueprintEl.scrollHeight;
 }
 
-async function submitAnswer(text) {
-  const t = text.trim();
-  if (!t) return;
+// ============================================================
+// STACK RECOMMENDATION
+// ============================================================
 
-  await addMessage(t, "user");
-  const q = QUESTIONS[qIndex];
-  answers[q.id] = t;
+function recommendStack(a) {
+  const s =
+    (a.skill || "")
+      .toLowerCase();
 
-  // Append answer to blueprint instantly (still good for preview)
-  appendBlueprintBlock(q.blueprintLabel, t);
+  if (
+    s.includes("next")
+  ) {
+    return "Next.js 15 · Postgres (Supabase) · Tailwind · Vercel Edge";
+  }
 
-  qIndex++;
-  setProgress();
-  optionsEl.innerHTML = "";
-  inputEl.value = "";
+  if (
+    s.includes("python")
+  ) {
+    return "FastAPI · Postgres · React (Vite) · Fly.io";
+  }
 
-  const typing = showTyping();
-  setTimeout(async () => {
-    typing.remove();
-    if (qIndex < QUESTIONS.length) {
-      await askNext();
-    } else {
-      await finishInterview();
-    }
-  }, 700 + Math.random() * 400);
+  if (
+    s.includes("react")
+  ) {
+    return "React + Node/Express · Postgres · Railway";
+  }
+
+  return "Next.js 15 · Supabase · Tailwind · Vercel — beginner-friendly default";
 }
 
-async function askNext() {
-  const q = QUESTIONS[qIndex];
-  await addMessage(q.bot, "bot", true);
-  renderOptions(q.options);
-  setProgress();
+// ============================================================
+// ROADMAP GENERATOR
+// ============================================================
+
+function generateRoadmap(scope) {
+
+  switch (scope) {
+
+    case "This weekend":
+      return `
+        <strong>Roadmap — 3-Day MVP Sprint</strong><br><br>
+        <strong>Day 1 — Foundation</strong><br>
+        Project setup, repository, database schema, authentication and environment configuration.<br><br>
+        <strong>Day 2 — Core Product</strong><br>
+        Build the main user flow, core CRUD operations, primary UI and API integration.<br><br>
+        <strong>Day 3 — Ship</strong><br>
+        Testing, bug fixing, responsive polish and production deployment.
+      `;
+
+    case "Two weeks":
+      return `
+        <strong>Roadmap — 2-Week MVP</strong><br><br>
+        <strong>Week 1 — Foundation & Backend</strong><br>
+        Project architecture, database schema, authentication, API layer and core backend logic.<br><br>
+        <strong>Week 2 — Product & Launch</strong><br>
+        Frontend implementation, core user flows, integration, testing, responsive polish and deployment.
+      `;
+
+    case "One month":
+      return `
+        <strong>Roadmap — 1-Month MVP</strong><br><br>
+        <strong>Week 1 — Foundation</strong><br>
+        Requirements, project setup, architecture, database schema, authentication and API foundation.<br><br>
+        <strong>Week 2 — Core Features</strong><br>
+        Build the primary user flows, CRUD operations, frontend screens and backend integration.<br><br>
+        <strong>Week 3 — Product Depth</strong><br>
+        Advanced features, validation, error handling, search/filtering, UX improvements and integrations.<br><br>
+        <strong>Week 4 — Production</strong><br>
+        Testing, performance optimization, security review, responsive polish, CI/CD and deployment.
+      `;
+
+    case "Two months":
+      return `
+        <strong>Roadmap — 2-Month Production Build</strong><br><br>
+        <strong>Month 1 — Build the MVP</strong><br><br>
+        <strong>Week 1 — Discovery & Architecture</strong><br>
+        Finalize requirements, define user flows, choose architecture, initialize repository and configure environments.<br><br>
+        <strong>Week 2 — Database & Authentication</strong><br>
+        Design database schema, implement authentication, authorization, API structure and core backend services.<br><br>
+        <strong>Week 3 — Core Product</strong><br>
+        Build the main frontend, CRUD functionality, dashboards, forms and primary user workflows.<br><br>
+        <strong>Week 4 — MVP Integration</strong><br>
+        Connect frontend and backend, complete the main product flow, handle errors and release an internal MVP.<br><br>
+        <strong>Month 2 — Improve & Launch</strong><br><br>
+        <strong>Week 5 — Advanced Features</strong><br>
+        Add secondary features, integrations, search/filtering, notifications and quality-of-life improvements.<br><br>
+        <strong>Week 6 — UX & Performance</strong><br>
+        Responsive design, accessibility, loading states, caching, performance optimization and UX refinement.<br><br>
+        <strong>Week 7 — Testing & Security</strong><br>
+        Unit tests, integration tests, edge cases, validation, security checks and production-readiness review.<br><br>
+        <strong>Week 8 — Production Launch</strong><br>
+        CI/CD, monitoring, analytics, final QA, production deployment and post-launch iteration plan.
+      `;
+
+    case "Three months":
+      return `
+        <strong>Roadmap — 3-Month Production Build</strong><br><br>
+        <strong>Month 1 — Research & MVP</strong><br>
+        Research, requirements, architecture, database, authentication, backend foundation and core product development.<br><br>
+        <strong>Month 2 — Product Expansion</strong><br>
+        Advanced features, integrations, improved UX, performance optimization and internal testing.<br><br>
+        <strong>Month 3 — Production & Scale</strong><br>
+        Security hardening, automated testing, CI/CD, observability, production deployment and scalability improvements.
+      `;
+
+    default:
+      return `
+        <strong>Roadmap</strong><br><br>
+        <strong>Phase 1 — Planning</strong><br>
+        Define requirements and architecture.<br><br>
+        <strong>Phase 2 — Development</strong><br>
+        Build the core product and integrations.<br><br>
+        <strong>Phase 3 — Testing</strong><br>
+        Test, optimize and fix issues.<br><br>
+        <strong>Phase 4 — Deployment</strong><br>
+        Deploy and monitor the production application.
+      `;
+  }
 }
+
+// ============================================================
+// FINISH INTERVIEW
+// ============================================================
 
 async function finishInterview() {
-  // Show AI thinking panel and start rotating messages
-  startThinking();
 
-  // Simulate blueprint generation streaming
-  // 1. Recommended stack
-  await streamBlueprintBlock("Stack", recommendStack(answers), 1400);
-
-  // 2. Database
-  const db = recommendStack(answers).includes("Supabase") ? "PostgreSQL (via Supabase)" : "PostgreSQL";
-  await streamBlueprintBlock("Database", db, 1200);
-
-  // 3. APIs
-  await streamBlueprintBlock("APIs", "REST + JWT auth", 1000);
-
-  // 4. Deployment
-  const deploy = recommendStack(answers).includes("Vercel") ? "Vercel" : "Railway / Fly.io";
-  await streamBlueprintBlock("Deployment", deploy, 1000);
-
-  // 5. Roadmap
-  await streamBlueprintBlock("Roadmap (v1)", generateRoadmap(answers.scope), 1400);
-
-  // 6. Resume impact (with a slight delay)
-  await new Promise(r => setTimeout(r, 800));
-  await appendBlueprintBlock(
-    "Resume impact",
-    `Shipped a full-stack ${(answers.idea || "product").toLowerCase()} for ${(answers.users || "users").toLowerCase()} in ${(answers.scope || "a sprint").toLowerCase()}.`
+  appendBlueprintBlock(
+    "Recommended stack",
+    recommendStack(answers)
   );
 
-  // Stop thinking and clean up
-  stopThinking();
+  const roadmap =
+    generateRoadmap(
+      answers.scope
+    );
+
+  appendBlueprintBlock(
+    "Roadmap",
+    roadmap
+  );
+
+  setTimeout(() => {
+
+    appendBlueprintBlock(
+      "Resume impact",
+      `Shipped a full-stack ${(answers.idea || "product")
+        .toLowerCase()
+      } for ${(answers.users || "users")
+        .toLowerCase()
+      } in ${(answers.scope || "a sprint")
+        .toLowerCase()
+      }.`
+    );
+
+  }, 800);
 
   await addMessage(
-    "Done! Your blueprint preview is on the right. Tap 'See a sample blueprint' for a full example.",
+    "Done! Your blueprint preview is on the right. Your roadmap has been generated based on your selected timeline.",
     "bot",
     true
   );
 
-  optionsEl.innerHTML = `<button type="button" class="option-chip" id="restart">↻ Restart interview</button>`;
-  document.getElementById("restart").addEventListener("click", restart);
-  inputEl.disabled = true;
+  if (optionsEl) {
 
-  // Final progress – mark all steps complete
-  qIndex = QUESTIONS.length;
+    optionsEl.innerHTML = `
+      <button
+        type="button"
+        class="option-chip"
+        id="restart"
+      >
+        ↻ Restart interview
+      </button>
+    `;
+
+    const restartButton =
+      document.getElementById(
+        "restart"
+      );
+
+    if (restartButton) {
+      restartButton.addEventListener(
+        "click",
+        restart
+      );
+    }
+  }
+
+  if (inputEl) {
+    inputEl.disabled = true;
+  }
+}
+
+// ============================================================
+// SUBMIT ANSWER
+// ============================================================
+
+async function submitAnswer(text) {
+
+  const t =
+    text.trim();
+
+  if (!t) return;
+
+  if (
+    qIndex >= QUESTIONS.length
+  ) {
+    return;
+  }
+
+  await addMessage(
+    t,
+    "user"
+  );
+
+  const q =
+    QUESTIONS[qIndex];
+
+  answers[q.id] = t;
+
+  appendBlueprintBlock(
+    q.blueprintLabel,
+    t
+  );
+
+  qIndex++;
+
+  setProgress();
+
+  if (optionsEl) {
+    optionsEl.innerHTML = "";
+  }
+
+  if (inputEl) {
+    inputEl.value = "";
+  }
+
+  const typing =
+    showTyping();
+
+  setTimeout(
+    async () => {
+
+      if (typing) {
+        typing.remove();
+      }
+
+      if (
+        qIndex <
+        QUESTIONS.length
+      ) {
+        await askNext();
+      } else {
+        await finishInterview();
+      }
+
+    },
+    700 +
+    Math.random() * 400
+  );
+}
+
+// ============================================================
+// ASK NEXT QUESTION
+// ============================================================
+
+async function askNext() {
+
+  if (
+    qIndex >=
+    QUESTIONS.length
+  ) {
+    return;
+  }
+
+  const q =
+    QUESTIONS[qIndex];
+
+  await addMessage(
+    q.bot,
+    "bot",
+    true
+  );
+
+  renderOptions(
+    q.options
+  );
+
   setProgress();
 }
 
+// ============================================================
+// RESTART INTERVIEW
+// ============================================================
+
 function restart() {
+
   qIndex = 0;
-  for (const k of Object.keys(answers)) delete answers[k];
-  messagesEl.innerHTML = "";
-  blueprintEl.innerHTML = `
-    <div class="bp-empty">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-      <p>Your blueprint will materialize here as you answer.</p>
-    </div>`;
-  inputEl.disabled = false;
-  stopThinking();  // in case it was left hanging
+
+  for (
+    const k of Object.keys(
+      answers
+    )
+  ) {
+    delete answers[k];
+  }
+
+  if (messagesEl) {
+    messagesEl.innerHTML = "";
+  }
+
+  if (blueprintEl) {
+
+    blueprintEl.innerHTML = `
+      <div class="bp-empty">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.5"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline
+            points="14 2 14 8 20 8"
+          />
+        </svg>
+        <p>
+          Your blueprint will materialize here as you answer.
+        </p>
+      </div>
+    `;
+  }
+
+  if (inputEl) {
+    inputEl.disabled = false;
+    inputEl.value = "";
+  }
+
+  if (optionsEl) {
+    optionsEl.innerHTML = "";
+  }
+
+  setProgress();
+
   askNext();
 }
 
-formEl.addEventListener("submit", e => {
-  e.preventDefault();
-  submitAnswer(inputEl.value);
-});
+// ============================================================
+// FORM SUBMISSION
+// ============================================================
 
-// Kick off the interview when demo enters view
-const demoIO = new IntersectionObserver(entries => {
-  entries.forEach(e => {
-    if (e.isIntersecting && qIndex === 0 && messagesEl.children.length === 0) {
-      askNext();
-      demoIO.disconnect();
+if (formEl) {
+
+  formEl.addEventListener(
+    "submit",
+    e => {
+
+      e.preventDefault();
+
+      submitAnswer(
+        inputEl.value
+      );
+
     }
-  });
-}, { threshold: 0.3 });
-demoIO.observe(document.getElementById("demo"));
-
-// ---------- Sample-blueprint modal ----------
-const modal = document.getElementById("sample-modal");
-document.getElementById("open-sample").addEventListener("click", () => {
-  modal.classList.add("open");
-  modal.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-});
-modal.querySelectorAll("[data-close-modal]").forEach(el =>
-  el.addEventListener("click", closeModal)
-);
-document.addEventListener("keydown", e => {
-  if (e.key === "Escape") closeModal();
-});
-
-function closeModal() {
-  modal.classList.remove("open");
-  modal.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
+  );
 }
 
-// ---------- Year ----------
-document.getElementById("year").textContent = new Date().getFullYear();
+// ============================================================
+// START INTERVIEW WHEN DEMO ENTERS VIEW
+// ============================================================
+
+const demo =
+  document.getElementById(
+    "demo"
+  );
+
+if (
+  demo &&
+  messagesEl
+) {
+
+  const demoIO =
+    new IntersectionObserver(
+      entries => {
+
+        entries.forEach(e => {
+
+          if (
+            e.isIntersecting &&
+            qIndex === 0 &&
+            messagesEl.children.length === 0
+          ) {
+
+            askNext();
+
+            demoIO.disconnect();
+          }
+
+        });
+
+      },
+      {
+        threshold: 0.3
+      }
+    );
+
+  demoIO.observe(demo);
+}
+
+// ============================================================
+// SAMPLE BLUEPRINT MODAL
+// ============================================================
+
+const modal =
+  document.getElementById(
+    "sample-modal"
+  );
+
+const openSample =
+  document.getElementById(
+    "open-sample"
+  );
+
+if (
+  modal &&
+  openSample
+) {
+
+  openSample.addEventListener(
+    "click",
+    () => {
+
+      modal.classList.add(
+        "open"
+      );
+
+      modal.setAttribute(
+        "aria-hidden",
+        "false"
+      );
+
+      document.body.style.overflow =
+        "hidden";
+    }
+  );
+
+  modal
+    .querySelectorAll(
+      "[data-close-modal]"
+    )
+    .forEach(el => {
+
+      el.addEventListener(
+        "click",
+        closeModal
+      );
+
+    });
+
+  document.addEventListener(
+    "keydown",
+    e => {
+
+      if (
+        e.key === "Escape"
+      ) {
+        closeModal();
+      }
+
+    }
+  );
+}
+
+function closeModal() {
+
+  if (!modal) return;
+
+  modal.classList.remove(
+    "open"
+  );
+
+  modal.setAttribute(
+    "aria-hidden",
+    "true"
+  );
+
+  document.body.style.overflow =
+    "";
+}
+
+// ============================================================
+// CURRENT YEAR
+// ============================================================
+
+const year =
+  document.getElementById(
+    "year"
+  );
+
+if (year) {
+  year.textContent =
+    new Date().getFullYear();
+}
