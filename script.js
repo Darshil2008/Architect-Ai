@@ -1,1283 +1,1522 @@
-/* Architect AI — Interactive landing JS */
+/**
+ * Architect AI — Unified Production JavaScript Engine (script.js)
+ * 
+ * 100% Pure Vanilla JavaScript (ES6+). Zero build tools. Zero Python dependencies.
+ * Works natively in any web browser directly via file:// or http://.
+ * 
+ * Includes:
+ * 1. Storage & API Key Manager (LocalStorage CRUD with quota guards & FIFO pruning)
+ * 2. Gemini 2.5 Flash Direct REST Client (with exponential backoff retries & JSON repair)
+ * 3. Intelligent Offline Heuristic Mock Engine (10 domain archetypes with decision trees)
+ * 4. Dynamic Multi-Turn Interview State Machine
+ * 5. Multi-Tab Blueprint Visualizer (Overview, ERD Schema, Mermaid SVG Diagram, Sprint Roadmap)
+ * 6. Export Engine (Markdown, JSON, Print-to-PDF, Clipboard copy)
+ * 7. Glassmorphism UI Controllers, Toasts, Particle Canvas, Spotlight Glow & Scroll Reveal
+ */
 
-// ============================================================
-// DATA
-// ============================================================
+(function () {
+  'use strict';
 
-const FEATURES = [
-  {
-    icon: '<path d="M12 2a4 4 0 0 0-4 4v1a4 4 0 0 0-2 7.5A4 4 0 0 0 9 22h6a4 4 0 0 0 3-7.5A4 4 0 0 0 16 7V6a4 4 0 0 0-4-4z"/>',
-    title: "Adaptive interview",
-    body: "A conversational engine that probes your skills, constraints, and ambitions — not a static form."
-  },
-  {
-    icon: '<circle cx="12" cy="12" r="10"/><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"/>',
-    title: "Skill-aware roadmap",
-    body: "Milestones calibrated to what you already know and the gaps worth closing."
-  },
-  {
-    icon: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
-    title: "Schema + APIs",
-    body: "Generated database schema, REST/GraphQL surface, and auth model — ready to scaffold."
-  },
-  {
-    icon: '<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/>',
-    title: "Stack rationale",
-    body: "Every framework, library, and service picked with a written tradeoff, not a vibe."
-  },
-  {
-    icon: '<path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"/>',
-    title: "Deployment plan",
-    body: "Hosting, CI/CD, environments, and observability mapped to your team size and budget."
-  },
-  {
-    icon: '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>',
-    title: "Resume impact",
-    body: "A recruiter-grade summary of what the project demonstrates about you."
-  },
-];
+  // ==============================================================================
+  // 1. CONFIGURATION & CONSTANTS
+  // ==============================================================================
 
-const STEPS = [
-  {
-    n: "01",
-    title: "Interview",
-    body: "A guided conversation captures your idea, audience, skills, and constraints."
-  },
-  {
-    n: "02",
-    title: "Analysis",
-    body: "The engine reasons over your profile to pick the stack, scope, and architecture."
-  },
-  {
-    n: "03",
-    title: "Blueprint",
-    body: "You receive a complete plan: roadmap, schema, APIs, deployment, and resume impact."
-  },
-];
-
-const FAQ = [
-  {
-    q: "Who is Architect AI for?",
-    a: "Engineers, students, and indie builders who want a credible architecture for a new project — without spending a weekend whiteboarding it alone."
-  },
-  {
-    q: "Does it write code?",
-    a: "Not yet. The first release generates a complete blueprint: stack, schema, APIs, roadmap, and deployment plan. Scaffolding lands in a later phase."
-  },
-  {
-    q: "What AI model powers the interview?",
-    a: "A Dify workflow orchestrates the multi-step reasoning. The model layer is swappable without changing the product surface."
-  },
-  {
-    q: "Can I export the blueprint?",
-    a: "Yes — Markdown, PDF, and a shareable link are planned for the blueprint dashboard."
-  },
-];
-
-// ============================================================
-// INTERVIEW QUESTIONS
-// ============================================================
-
-const QUESTIONS = [
-  {
-    id: "idea",
-    bot: "Hey 👋 I'm Architect. In one line, what are you building?",
-    options: [
-      "A SaaS dashboard",
-      "A social mobile app",
-      "An AI tool",
-      "An e-commerce site"
-    ],
-    blueprintLabel: "Project idea"
-  },
-
-  {
-    id: "users",
-    bot: "Got it. Who is it for?",
-    options: [
-      "Developers",
-      "Small businesses",
-      "Consumers",
-      "Enterprise teams"
-    ],
-    blueprintLabel: "Target users"
-  },
-
-  {
-    id: "skill",
-    bot: "What's your strongest stack right now?",
-    options: [
-      "React + Node",
-      "Next.js + Postgres",
-      "Python + FastAPI",
-      "Beginner — pick for me"
-    ],
-    blueprintLabel: "Primary stack"
-  },
-
-  {
-    id: "scope",
-    bot: "Last one — how soon do you want a v1 shipped?",
-    options: [
-      "This weekend",
-      "Two weeks",
-      "One month",
-      "Two months",
-      "Three months"
-    ],
-    blueprintLabel: "Target timeline"
-  }
-];
-
-// ============================================================
-// RENDER FEATURES
-// ============================================================
-
-const featureGrid = document.querySelector(".feature-grid");
-
-if (featureGrid) {
-  featureGrid.innerHTML = FEATURES.map(f => `
-    <div class="feature-card reveal">
-      <div class="feature-icon">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          ${f.icon}
-        </svg>
-      </div>
-
-      <h3>${f.title}</h3>
-      <p>${f.body}</p>
-    </div>
-  `).join("");
-}
-
-// Spotlight hover
-document.querySelectorAll(".feature-card").forEach(card => {
-  card.addEventListener("mousemove", e => {
-    const r = card.getBoundingClientRect();
-
-    card.style.setProperty(
-      "--mx",
-      (e.clientX - r.left) + "px"
-    );
-
-    card.style.setProperty(
-      "--my",
-      (e.clientY - r.top) + "px"
-    );
-  });
-});
-
-// ============================================================
-// RENDER WORKFLOW
-// ============================================================
-
-const workflowGrid = document.querySelector(".workflow-grid");
-
-if (workflowGrid) {
-  workflowGrid.innerHTML = STEPS.map((s, i) => `
-    <li class="step reveal">
-      <span class="step-num" aria-hidden="true">${s.n}</span>
-      <span class="step-kicker">Step ${i + 1}</span>
-
-      <h3>${s.title}</h3>
-      <p>${s.body}</p>
-    </li>
-  `).join("");
-}
-
-// ============================================================
-// RENDER FAQ
-// ============================================================
-
-const faqList = document.getElementById("faq-list");
-
-if (faqList) {
-  faqList.innerHTML = FAQ.map((item, i) => `
-    <div class="faq-item reveal" data-i="${i}">
-      <button
-        class="faq-q"
-        aria-expanded="false"
-        type="button"
-      >
-        <span>${item.q}</span>
-
-        <svg
-          class="faq-chevron"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <polyline points="6 9 12 15 18 9"/>
-        </svg>
-      </button>
-
-      <div class="faq-a">
-        <div class="faq-a-inner">
-          ${item.a}
-        </div>
-      </div>
-    </div>
-  `).join("");
-
-  faqList.querySelectorAll(".faq-item").forEach(item => {
-    const button = item.querySelector(".faq-q");
-
-    button.addEventListener("click", () => {
-      const open = item.classList.toggle("open");
-
-      button.setAttribute(
-        "aria-expanded",
-        open
-      );
-    });
-  });
-}
-
-// ============================================================
-// STICKY HEADER
-// ============================================================
-
-const header = document.getElementById("site-header");
-
-if (header) {
-  const onScroll = () => {
-    header.classList.toggle(
-      "scrolled",
-      window.scrollY > 12
-    );
+  const STORAGE_KEYS = {
+    API_KEY: 'architect_ai_gemini_key',
+    LEGACY_KEY: 'gemini_api_key',
+    MODEL: 'architect_ai_gemini_model',
+    MODE: 'architect_ai_engine_mode',
+    HISTORY: 'architect_ai_history_v1'
   };
 
-  window.addEventListener(
-    "scroll",
-    onScroll,
-    { passive: true }
-  );
+  const MAX_HISTORY_ITEMS = 20;
 
-  onScroll();
-}
+  const GEMINI_MODELS = {
+    PRIMARY: 'gemini-2.5-flash',
+    FALLBACK: 'gemini-1.5-flash',
+    PRO: 'gemini-2.5-pro',
+    DEFAULT: 'gemini-2.5-flash'
+  };
 
-// ============================================================
-// MOBILE NAV
-// ============================================================
+  const ENGINE_MODES = {
+    AUTO: 'auto',
+    API: 'api',
+    MOCK: 'mock'
+  };
 
-const toggle = document.getElementById("menu-toggle");
-const mobileNav = document.getElementById("mobile-nav");
+  const GEMINI_CONFIG = {
+    BASE_URL: 'https://generativelanguage.googleapis.com/v1beta/models',
+    DEFAULT_TEMPERATURE: 0.7,
+    SYNTHESIS_TEMPERATURE: 0.4,
+    DEFAULT_TOP_P: 0.95,
+    MAX_RETRIES: 3,
+    INITIAL_RETRY_DELAY_MS: 1200
+  };
 
-if (toggle && mobileNav) {
-  toggle.addEventListener("click", () => {
-    const open = mobileNav.classList.toggle("open");
+  const INTERVIEW_STAGES = [
+    { id: 'IDEA', index: 0, name: 'Domain & Core Idea', summaryKey: 'idea' },
+    { id: 'SCALE', index: 1, name: 'Scale & Concurrency', summaryKey: 'scale' },
+    { id: 'STACK', index: 2, name: 'Tech Constraints & Stack', summaryKey: 'techStack' },
+    { id: 'STORAGE', index: 3, name: 'Data Architecture & Storage', summaryKey: 'storage' },
+    { id: 'CONSTRAINTS', index: 4, name: 'Latency, Budget & Constraints', summaryKey: 'constraints' },
+    { id: 'SYNTHESIS', index: 5, name: 'Blueprint Synthesis', summaryKey: 'synthesis' }
+  ];
 
-    toggle.setAttribute(
-      "aria-expanded",
-      open
-    );
-  });
+  const DOMAIN_KEYWORDS = {
+    ai: ['ai', 'llm', 'gpt', 'gemini', 'rag', 'agent', 'vector', 'embedding', 'langchain', 'llama', 'copilot', 'bot', 'machine learning', 'nlp', 'vision'],
+    ecommerce: ['shop', 'store', 'cart', 'checkout', 'stripe', 'product', 'order', 'inventory', 'sku', 'payment', 'marketplace', 'commerce', 'catalog'],
+    realtime: ['chat', 'social', 'feed', 'message', 'socket', 'websocket', 'realtime', 'collab', 'live', 'stream', 'notification', 'webrtc', 'p2p'],
+    fintech: ['crypto', 'bank', 'finance', 'ledger', 'wallet', 'trading', 'payment', 'audit', 'tax', 'fraud', 'pci', 'kyc', 'transaction'],
+    streaming: ['video', 'audio', 'stream', 'media', 'hls', 'transcode', 'ffmpeg', 'podcast', 'vod', 'music', 'live streaming'],
+    iot: ['iot', 'sensor', 'device', 'mqtt', 'telemetry', 'hardware', 'embedded', 'gateway', 'fleet', 'zigbee', 'arduino', 'raspberry'],
+    mobile: ['mobile', 'ios', 'android', 'react native', 'flutter', 'pwa', 'expo', 'offline-first', 'recipe', 'app store'],
+    devtool: ['cli', 'compiler', 'devtool', 'linter', 'parser', 'sdk', 'git', 'terminal', 'debugger', 'ide', 'code generator', 'scaffold'],
+    serverless: ['lambda', 'edge', 'serverless', 'vercel', 'cloudflare workers', 'deno deploy', 'fly.io', 'supabase', 'firebase'],
+    saas: ['saas', 'b2b', 'dashboard', 'analytics', 'crm', 'auth', 'multi-tenant', 'billing', 'subscription', 'workspace', 'platform', 'app']
+  };
 
-  mobileNav.querySelectorAll("a").forEach(a => {
-    a.addEventListener("click", () => {
-      mobileNav.classList.remove("open");
-    });
-  });
-}
+  // ==============================================================================
+  // 2. SANITIZATION & STRING UTILITIES
+  // ==============================================================================
 
-// ============================================================
-// SMOOTH SCROLL
-// ============================================================
-
-function scrollToHash(hash) {
-  if (!hash) return;
-
-  const el = document.querySelector(hash);
-
-  if (el) {
-    el.scrollIntoView({
-      behavior: "smooth",
-      block: "start"
-    });
+  function escapeHTML(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
-}
 
-document.querySelectorAll('a[href^="#"]').forEach(a => {
-  a.addEventListener("click", e => {
-    const id = a.getAttribute("href");
+  function escapeMermaid(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/[[\](){}<>"'|\\]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
 
-    if (id && id.length > 1) {
-      e.preventDefault();
-      scrollToHash(id);
+  function sanitizeMermaidSyntax(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    let cleaned = raw.trim();
+    if (cleaned.startsWith('```mermaid')) cleaned = cleaned.slice(10);
+    if (cleaned.startsWith('```')) cleaned = cleaned.slice(3);
+    if (cleaned.endsWith('```')) cleaned = cleaned.slice(0, -3);
+    return cleaned.trim();
+  }
+
+  // ==============================================================================
+  // 3. STORAGE & SESSION HISTORY MANAGER
+  // ==============================================================================
+
+  const memoryStore = new Map();
+
+  function isStorageSupported() {
+    try {
+      if (typeof window === 'undefined' || !window.localStorage) return false;
+      const test = '__architect_test__';
+      window.localStorage.setItem(test, test);
+      window.localStorage.removeItem(test);
+      return true;
+    } catch (e) {
+      return false;
     }
-  });
-});
-
-document.querySelectorAll("[data-scroll]").forEach(b => {
-  b.addEventListener("click", () => {
-    scrollToHash(b.dataset.scroll);
-  });
-});
-
-// ============================================================
-// REVEAL ON SCROLL
-// ============================================================
-
-const io = new IntersectionObserver(
-  entries => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add("visible");
-        io.unobserve(e.target);
-      }
-    });
-  },
-  {
-    threshold: 0.12
-  }
-);
-
-document
-  .querySelectorAll(".reveal")
-  .forEach(el => io.observe(el));
-
-// ============================================================
-// ANIMATED STAT COUNTERS
-// ============================================================
-
-const statIO = new IntersectionObserver(
-  entries => {
-    entries.forEach(e => {
-      if (!e.isIntersecting) return;
-
-      const el = e.target;
-      const end = parseFloat(el.dataset.count);
-      const suffix = el.dataset.suffix || "";
-
-      const dur = 1400;
-      const start = performance.now();
-
-      const tick = now => {
-        const p = Math.min(
-          1,
-          (now - start) / dur
-        );
-
-        const eased =
-          1 - Math.pow(1 - p, 3);
-
-        el.textContent =
-          Math.round(end * eased) + suffix;
-
-        if (p < 1) {
-          requestAnimationFrame(tick);
-        }
-      };
-
-      requestAnimationFrame(tick);
-
-      statIO.unobserve(el);
-    });
-  },
-  {
-    threshold: 0.5
-  }
-);
-
-document
-  .querySelectorAll(".stat-num")
-  .forEach(s => statIO.observe(s));
-
-// ============================================================
-// CURSOR GLOW
-// ============================================================
-
-const glow = document.getElementById("cursor-glow");
-
-if (
-  glow &&
-  window.matchMedia("(hover:hover)").matches
-) {
-  window.addEventListener("mousemove", e => {
-    glow.classList.add("active");
-
-    glow.style.transform =
-      `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
-  });
-
-  window.addEventListener("mouseleave", () => {
-    glow.classList.remove("active");
-  });
-}
-
-// ============================================================
-// PARTICLE NETWORK
-// ============================================================
-
-(() => {
-  const canvas =
-    document.getElementById("particles");
-
-  if (!canvas) return;
-
-  const ctx = canvas.getContext("2d");
-
-  let w;
-  let h;
-  let particles = [];
-
-  const COUNT =
-    window.innerWidth < 768
-      ? 28
-      : 56;
-
-  function resize() {
-    w = canvas.width =
-      window.innerWidth;
-
-    h = canvas.height =
-      window.innerHeight;
   }
 
-  function init() {
-    particles =
-      Array.from(
-        { length: COUNT },
-        () => ({
-          x: Math.random() * w,
-          y: Math.random() * h,
+  const hasLocalStorage = isStorageSupported();
 
-          vx:
-            (Math.random() - 0.5) *
-            0.3,
-
-          vy:
-            (Math.random() - 0.5) *
-            0.3,
-
-          r:
-            Math.random() * 1.6 +
-            0.6
-        })
-      );
+  function storageGet(key) {
+    try {
+      if (hasLocalStorage) return window.localStorage.getItem(key);
+      return memoryStore.get(key) || null;
+    } catch (e) {
+      return memoryStore.get(key) || null;
+    }
   }
 
-  function step() {
-    ctx.clearRect(
-      0,
-      0,
-      w,
-      h
-    );
+  function storageSet(key, val) {
+    try {
+      if (hasLocalStorage) window.localStorage.setItem(key, val);
+      memoryStore.set(key, val);
+      return true;
+    } catch (e) {
+      memoryStore.set(key, val);
+      return false;
+    }
+  }
 
-    for (const p of particles) {
-      p.x += p.vx;
-      p.y += p.vy;
+  function storageRemove(key) {
+    try {
+      if (hasLocalStorage) window.localStorage.removeItem(key);
+      memoryStore.delete(key);
+    } catch (e) {
+      memoryStore.delete(key);
+    }
+  }
 
-      if (
-        p.x < 0 ||
-        p.x > w
-      ) {
-        p.vx *= -1;
-      }
+  function getApiKey() {
+    const primary = storageGet(STORAGE_KEYS.API_KEY);
+    if (primary && primary.trim().length > 0) return primary.trim();
+    const legacy = storageGet(STORAGE_KEYS.LEGACY_KEY);
+    if (legacy && legacy.trim().length > 0) return legacy.trim();
+    return null;
+  }
 
-      if (
-        p.y < 0 ||
-        p.y > h
-      ) {
-        p.vy *= -1;
-      }
+  function setApiKey(key) {
+    if (!key || typeof key !== 'string' || key.trim().length === 0) {
+      clearApiKey();
+      return;
+    }
+    const trimmed = key.trim();
+    storageSet(STORAGE_KEYS.API_KEY, trimmed);
+    storageSet(STORAGE_KEYS.LEGACY_KEY, trimmed);
+  }
 
-      ctx.beginPath();
+  function clearApiKey() {
+    storageRemove(STORAGE_KEYS.API_KEY);
+    storageRemove(STORAGE_KEYS.LEGACY_KEY);
+  }
 
-      ctx.arc(
-        p.x,
-        p.y,
-        p.r,
-        0,
-        Math.PI * 2
-      );
+  function hasApiKey() {
+    const key = getApiKey();
+    return typeof key === 'string' && key.length > 5;
+  }
 
-      ctx.fillStyle =
-        "rgba(139,148,255,.55)";
+  function maskApiKey(key) {
+    const k = key || getApiKey();
+    if (!k || typeof k !== 'string') return '';
+    const trimmed = k.trim();
+    if (trimmed.length <= 8) return '••••••••';
+    if (trimmed.length <= 14) return `${trimmed.slice(0, 3)}...${trimmed.slice(-3)}`;
+    return `${trimmed.slice(0, 6)}...${trimmed.slice(-4)}`;
+  }
 
-      ctx.fill();
+  function getModelPreference() {
+    const stored = storageGet(STORAGE_KEYS.MODEL);
+    return stored && stored.trim().length > 0 ? stored.trim() : GEMINI_MODELS.DEFAULT;
+  }
+
+  function setModelPreference(model) {
+    if (typeof model === 'string' && model.trim().length > 0) {
+      storageSet(STORAGE_KEYS.MODEL, model.trim());
+    }
+  }
+
+  function getHistory() {
+    const raw = storageGet(STORAGE_KEYS.HISTORY);
+    if (!raw) return [];
+    try {
+      const parsed = JSON.parse(raw);
+      return Array.isArray(parsed) ? parsed.filter(item => item && item.id) : [];
+    } catch (e) {
+      return [];
+    }
+  }
+
+  function saveBlueprint(blueprint) {
+    if (!blueprint || typeof blueprint !== 'object') return false;
+    const item = { ...blueprint };
+    if (!item.id) item.id = `bp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    if (!item.timestamp) item.timestamp = new Date().toISOString();
+
+    let history = getHistory();
+    const idx = history.findIndex(bp => bp.id === item.id);
+    if (idx >= 0) {
+      history[idx] = item;
+    } else {
+      history.unshift(item);
     }
 
-    for (
-      let i = 0;
-      i < particles.length;
-      i++
-    ) {
-      for (
-        let j = i + 1;
-        j < particles.length;
-        j++
-      ) {
-        const a = particles[i];
-        const b = particles[j];
+    if (history.length > MAX_HISTORY_ITEMS) {
+      history = history.slice(0, MAX_HISTORY_ITEMS);
+    }
 
-        const dx =
-          a.x - b.x;
+    try {
+      storageSet(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+      return true;
+    } catch (e) {
+      if (history.length > 1) {
+        history.pop();
+        storageSet(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+        return true;
+      }
+      return false;
+    }
+  }
 
-        const dy =
-          a.y - b.y;
+  function deleteBlueprint(id) {
+    if (!id) return false;
+    const history = getHistory();
+    const filtered = history.filter(bp => bp.id !== id);
+    if (filtered.length !== history.length) {
+      storageSet(STORAGE_KEYS.HISTORY, JSON.stringify(filtered));
+      return true;
+    }
+    return false;
+  }
 
-        const d =
-          Math.hypot(
-            dx,
-            dy
-          );
+  function clearHistory() {
+    storageRemove(STORAGE_KEYS.HISTORY);
+  }
 
-        if (d < 130) {
-          ctx.beginPath();
+  // ==============================================================================
+  // 4. GEMINI API REST CLIENT
+  // ==============================================================================
 
-          ctx.moveTo(
-            a.x,
-            a.y
-          );
+  function extractAndParseJSON(raw) {
+    if (typeof raw === 'object' && raw !== null) return raw;
+    if (typeof raw !== 'string') throw new Error('Expected string input for JSON parsing');
 
-          ctx.lineTo(
-            b.x,
-            b.y
-          );
+    let cleaned = raw.trim();
+    if (cleaned.startsWith('```json')) cleaned = cleaned.substring(7);
+    else if (cleaned.startsWith('```')) cleaned = cleaned.substring(3);
+    if (cleaned.endsWith('```')) cleaned = cleaned.substring(0, cleaned.length - 3);
+    cleaned = cleaned.trim();
 
-          ctx.strokeStyle =
-            `rgba(99,102,241,${(1 - d / 130) * 0.18})`;
-
-          ctx.lineWidth = 1;
-
-          ctx.stroke();
+    try {
+      return JSON.parse(cleaned);
+    } catch (e1) {
+      const firstBrace = cleaned.indexOf('{');
+      const lastBrace = cleaned.lastIndexOf('}');
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        try {
+          return JSON.parse(cleaned.substring(firstBrace, lastBrace + 1));
+        } catch (e2) {
+          const repaired = cleaned.substring(firstBrace, lastBrace + 1).replace(/,\s*([}\]])/g, '$1');
+          return JSON.parse(repaired);
         }
       }
+      throw new Error(`Could not parse JSON response from AI: ${e1.message}`);
     }
-
-    requestAnimationFrame(step);
   }
 
-  resize();
-  init();
-  step();
+  async function callGemini(endpoint, payload, maxRetries = 3) {
+    let attempt = 0;
+    let delay = 1200;
+    while (attempt <= maxRetries) {
+      try {
+        const response = await fetch(endpoint, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
 
-  window.addEventListener(
-    "resize",
-    () => {
-      resize();
-      init();
-    }
-  );
-})();
-
-// ============================================================
-// INTERACTIVE INTERVIEW
-// ============================================================
-
-const messagesEl =
-  document.getElementById("messages");
-
-const optionsEl =
-  document.getElementById("options");
-
-const inputEl =
-  document.getElementById("answer-input");
-
-const formEl =
-  document.getElementById("answer-form");
-
-const fillEl =
-  document.getElementById("progress-fill");
-
-const progLabel =
-  document.getElementById("progress-label");
-
-const blueprintEl =
-  document.getElementById("blueprint");
-
-const answers = {};
-
-let qIndex = 0;
-
-// ============================================================
-// AI MESSAGE
-// ============================================================
-
-async function addMessage(
-  text,
-  who,
-  typing = false
-) {
-  if (!messagesEl) return;
-
-  const el =
-    document.createElement("div");
-
-  el.className =
-    `msg ${who}`;
-
-  messagesEl.appendChild(el);
-
-  // User messages
-  if (
-    who === "user" ||
-    !typing
-  ) {
-    el.textContent = text;
-
-    messagesEl.scrollTop =
-      messagesEl.scrollHeight;
-
-    return el;
-  }
-
-  // AI typing animation
-  let i = 0;
-
-  while (
-    i < text.length
-  ) {
-    el.textContent +=
-      text.charAt(i);
-
-    i++;
-
-    messagesEl.scrollTop =
-      messagesEl.scrollHeight;
-
-    await new Promise(
-      resolve =>
-        setTimeout(
-          resolve,
-          18
-        )
-    );
-  }
-
-  return el;
-}
-
-// ============================================================
-// TYPING INDICATOR
-// ============================================================
-
-function showTyping() {
-  if (!messagesEl) return null;
-
-  const t =
-    document.createElement("div");
-
-  t.className =
-    "msg bot typing";
-
-  t.innerHTML =
-    "<span></span><span></span><span></span>";
-
-  messagesEl.appendChild(t);
-
-  messagesEl.scrollTop =
-    messagesEl.scrollHeight;
-
-  return t;
-}
-
-// ============================================================
-// RENDER ANSWER OPTIONS
-// ============================================================
-
-function renderOptions(opts) {
-  if (!optionsEl) return;
-
-  optionsEl.innerHTML =
-    opts
-      .map(
-        o =>
-          `<button type="button" class="option-chip">${o}</button>`
-      )
-      .join("");
-
-  optionsEl
-    .querySelectorAll(".option-chip")
-    .forEach(button => {
-      button.addEventListener(
-        "click",
-        () => {
-          submitAnswer(
-            button.textContent
-          );
+        if (response.ok) {
+          return await response.json();
         }
-      );
-    });
-}
 
-// ============================================================
-// PROGRESS
-// ============================================================
+        if (response.status === 429 || (response.status >= 500 && response.status < 600)) {
+          attempt++;
+          if (attempt > maxRetries) throw new Error(`Gemini API rate limit or server error (HTTP ${response.status})`);
+          await new Promise(r => setTimeout(r, delay));
+          delay *= 1.8;
+          continue;
+        }
 
-function setProgress() {
-  if (!fillEl || !progLabel) return;
-
-  const percentage =
-    (qIndex /
-      QUESTIONS.length) *
-    100;
-
-  fillEl.style.width =
-    `${percentage}%`;
-
-  progLabel.textContent =
-    qIndex >= QUESTIONS.length
-      ? "Complete"
-      : `Question ${qIndex + 1} / ${QUESTIONS.length}`;
-}
-
-// ============================================================
-// BLUEPRINT BLOCK
-// ============================================================
-
-function appendBlueprintBlock(
-  label,
-  value
-) {
-  if (!blueprintEl) return;
-
-  const empty =
-    blueprintEl.querySelector(
-      ".bp-empty"
-    );
-
-  if (empty) {
-    blueprintEl.innerHTML = "";
-  }
-
-  const block =
-    document.createElement("div");
-
-  block.className =
-    "bp-block";
-
-  block.innerHTML = `
-    <div class="bp-label">
-      ${label}
-    </div>
-
-    <div class="bp-content">
-      ${value}
-    </div>
-  `;
-
-  blueprintEl.appendChild(
-    block
-  );
-
-  blueprintEl.scrollTop =
-    blueprintEl.scrollHeight;
-}
-
-// ============================================================
-// STACK RECOMMENDATION
-// ============================================================
-
-function recommendStack(a) {
-  const s =
-    (a.skill || "")
-      .toLowerCase();
-
-  if (
-    s.includes("next")
-  ) {
-    return "Next.js 15 · Postgres (Supabase) · Tailwind · Vercel Edge";
-  }
-
-  if (
-    s.includes("python")
-  ) {
-    return "FastAPI · Postgres · React (Vite) · Fly.io";
-  }
-
-  if (
-    s.includes("react")
-  ) {
-    return "React + Node/Express · Postgres · Railway";
-  }
-
-  return "Next.js 15 · Supabase · Tailwind · Vercel — beginner-friendly default";
-}
-
-// ============================================================
-// ROADMAP GENERATOR
-// ============================================================
-
-function generateRoadmap(scope) {
-
-  switch (scope) {
-
-    case "This weekend":
-      return `
-        <strong>Roadmap — 3-Day MVP Sprint</strong><br><br>
-        <strong>Day 1 — Foundation</strong><br>
-        Project setup, repository, database schema, authentication and environment configuration.<br><br>
-        <strong>Day 2 — Core Product</strong><br>
-        Build the main user flow, core CRUD operations, primary UI and API integration.<br><br>
-        <strong>Day 3 — Ship</strong><br>
-        Testing, bug fixing, responsive polish and production deployment.
-      `;
-
-    case "Two weeks":
-      return `
-        <strong>Roadmap — 2-Week MVP</strong><br><br>
-        <strong>Week 1 — Foundation & Backend</strong><br>
-        Project architecture, database schema, authentication, API layer and core backend logic.<br><br>
-        <strong>Week 2 — Product & Launch</strong><br>
-        Frontend implementation, core user flows, integration, testing, responsive polish and deployment.
-      `;
-
-    case "One month":
-      return `
-        <strong>Roadmap — 1-Month MVP</strong><br><br>
-        <strong>Week 1 — Foundation</strong><br>
-        Requirements, project setup, architecture, database schema, authentication and API foundation.<br><br>
-        <strong>Week 2 — Core Features</strong><br>
-        Build the primary user flows, CRUD operations, frontend screens and backend integration.<br><br>
-        <strong>Week 3 — Product Depth</strong><br>
-        Advanced features, validation, error handling, search/filtering, UX improvements and integrations.<br><br>
-        <strong>Week 4 — Production</strong><br>
-        Testing, performance optimization, security review, responsive polish, CI/CD and deployment.
-      `;
-
-    case "Two months":
-      return `
-        <strong>Roadmap — 2-Month Production Build</strong><br><br>
-        <strong>Month 1 — Build the MVP</strong><br><br>
-        <strong>Week 1 — Discovery & Architecture</strong><br>
-        Finalize requirements, define user flows, choose architecture, initialize repository and configure environments.<br><br>
-        <strong>Week 2 — Database & Authentication</strong><br>
-        Design database schema, implement authentication, authorization, API structure and core backend services.<br><br>
-        <strong>Week 3 — Core Product</strong><br>
-        Build the main frontend, CRUD functionality, dashboards, forms and primary user workflows.<br><br>
-        <strong>Week 4 — MVP Integration</strong><br>
-        Connect frontend and backend, complete the main product flow, handle errors and release an internal MVP.<br><br>
-        <strong>Month 2 — Improve & Launch</strong><br><br>
-        <strong>Week 5 — Advanced Features</strong><br>
-        Add secondary features, integrations, search/filtering, notifications and quality-of-life improvements.<br><br>
-        <strong>Week 6 — UX & Performance</strong><br>
-        Responsive design, accessibility, loading states, caching, performance optimization and UX refinement.<br><br>
-        <strong>Week 7 — Testing & Security</strong><br>
-        Unit tests, integration tests, edge cases, validation, security checks and production-readiness review.<br><br>
-        <strong>Week 8 — Production Launch</strong><br>
-        CI/CD, monitoring, analytics, final QA, production deployment and post-launch iteration plan.
-      `;
-
-    case "Three months":
-      return `
-        <strong>Roadmap — 3-Month Production Build</strong><br><br>
-        <strong>Month 1 — Research & MVP</strong><br>
-        Research, requirements, architecture, database, authentication, backend foundation and core product development.<br><br>
-        <strong>Month 2 — Product Expansion</strong><br>
-        Advanced features, integrations, improved UX, performance optimization and internal testing.<br><br>
-        <strong>Month 3 — Production & Scale</strong><br>
-        Security hardening, automated testing, CI/CD, observability, production deployment and scalability improvements.
-      `;
-
-    default:
-      return `
-        <strong>Roadmap</strong><br><br>
-        <strong>Phase 1 — Planning</strong><br>
-        Define requirements and architecture.<br><br>
-        <strong>Phase 2 — Development</strong><br>
-        Build the core product and integrations.<br><br>
-        <strong>Phase 3 — Testing</strong><br>
-        Test, optimize and fix issues.<br><br>
-        <strong>Phase 4 — Deployment</strong><br>
-        Deploy and monitor the production application.
-      `;
-  }
-}
-
-// ============================================================
-// FINISH INTERVIEW
-// ============================================================
-
-async function finishInterview() {
-
-  appendBlueprintBlock(
-    "Recommended stack",
-    recommendStack(answers)
-  );
-
-  const roadmap =
-    generateRoadmap(
-      answers.scope
-    );
-
-  appendBlueprintBlock(
-    "Roadmap",
-    roadmap
-  );
-
-  setTimeout(() => {
-
-    appendBlueprintBlock(
-      "Resume impact",
-      `Shipped a full-stack ${(answers.idea || "product")
-        .toLowerCase()
-      } for ${(answers.users || "users")
-        .toLowerCase()
-      } in ${(answers.scope || "a sprint")
-        .toLowerCase()
-      }.`
-    );
-
-  }, 800);
-
-  await addMessage(
-    "Done! Your blueprint preview is on the right. Your roadmap has been generated based on your selected timeline.",
-    "bot",
-    true
-  );
-
-  if (optionsEl) {
-
-    optionsEl.innerHTML = `
-      <button
-        type="button"
-        class="option-chip"
-        id="restart"
-      >
-        ↻ Restart interview
-      </button>
-    `;
-
-    const restartButton =
-      document.getElementById(
-        "restart"
-      );
-
-    if (restartButton) {
-      restartButton.addEventListener(
-        "click",
-        restart
-      );
+        const errJson = await response.json().catch(() => ({}));
+        throw new Error(errJson.error?.message || `Gemini API HTTP Error ${response.status}`);
+      } catch (err) {
+        attempt++;
+        if (attempt > maxRetries) throw err;
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 1.8;
+      }
     }
   }
 
-  if (inputEl) {
-    inputEl.disabled = true;
-  }
-}
-
-// ============================================================
-// SUBMIT ANSWER
-// ============================================================
-
-async function submitAnswer(text) {
-
-  const t =
-    text.trim();
-
-  if (!t) return;
-
-  if (
-    qIndex >= QUESTIONS.length
-  ) {
-    return;
+  async function testConnection(apiKey) {
+    const key = apiKey || getApiKey();
+    if (!key) return { success: false, error: 'No API key provided.' };
+    const url = `${GEMINI_CONFIG.BASE_URL}/${GEMINI_MODELS.PRIMARY}:generateContent?key=${encodeURIComponent(key)}`;
+    const payload = {
+      contents: [{ role: 'user', parts: [{ text: 'Respond with exactly {"status":"connected"} as JSON.' }] }],
+      generationConfig: { temperature: 0.1, maxOutputTokens: 50, responseMimeType: 'application/json' }
+    };
+    try {
+      const res = await callGemini(url, payload, 1);
+      const text = res.candidates?.[0]?.content?.parts?.[0]?.text;
+      const parsed = extractAndParseJSON(text);
+      return { success: true, model: GEMINI_MODELS.PRIMARY, status: parsed.status || 'connected' };
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
   }
 
-  await addMessage(
-    t,
-    "user"
-  );
+  // ==============================================================================
+  // 5. INTELLIGENT OFFLINE MOCK HEURISTIC ENGINE (10 ARCHETYPES)
+  // ==============================================================================
 
-  const q =
-    QUESTIONS[qIndex];
-
-  answers[q.id] = t;
-
-  appendBlueprintBlock(
-    q.blueprintLabel,
-    t
-  );
-
-  qIndex++;
-
-  setProgress();
-
-  if (optionsEl) {
-    optionsEl.innerHTML = "";
-  }
-
-  if (inputEl) {
-    inputEl.value = "";
-  }
-
-  const typing =
-    showTyping();
-
-  setTimeout(
-    async () => {
-
-      if (typing) {
-        typing.remove();
+  function classifyDomain(text) {
+    if (!text || typeof text !== 'string') return 'saas';
+    const lower = text.toLowerCase();
+    let bestDomain = 'saas';
+    let maxScore = 0;
+    for (const [domain, keywords] of Object.entries(DOMAIN_KEYWORDS)) {
+      let score = 0;
+      for (const kw of keywords) {
+        if (lower.includes(kw)) score += (kw.length >= 6 ? 2 : 1);
       }
-
-      if (
-        qIndex <
-        QUESTIONS.length
-      ) {
-        await askNext();
-      } else {
-        await finishInterview();
+      if (score > maxScore) {
+        maxScore = score;
+        bestDomain = domain;
       }
+    }
+    return maxScore > 0 ? bestDomain : 'saas';
+  }
 
+  const ARCHETYPE_BLUEPRINTS = {
+    saas: {
+      summary: {
+        title: "CloudScale SaaS Platform",
+        tagline: "High-performance multi-tenant B2B analytics and workflow automation platform",
+        domain: "saas",
+        targetScale: "10K - 100K DAU · 2,500 peak RPS · 99.99% SLA",
+        estimatedMonthlyCost: "$120 - $350 / month",
+        description: "A production-grade multi-tenant SaaS architecture engineered with Next.js 15, PostgreSQL Row-Level Security, Redis distributed session caching, and background task queues."
+      },
+      stack: {
+        frontend: { name: "Next.js 15 (App Router) + Tailwind CSS + shadcn/ui", reason: "Server Components reduce client bundle size; instant edge caching.", tradeoffs: "Requires edge runtime adaptation for non-Node APIs." },
+        backend: { name: "Node.js (Fastify) + TypeScript Microservices", reason: "Lightweight, ultra-low overhead REST/gRPC API gateway.", tradeoffs: "Requires explicit schema validation layer (Zod/TypeBox)." },
+        database: { name: "PostgreSQL 16 (Neon / Supabase) with RLS", reason: "ACID compliance, Row-Level Security for multi-tenant isolation, and connection pooling.", tradeoffs: "Requires query indexing hygiene at scale." },
+        caching: { name: "Upstash Redis + BullMQ Queue", reason: "Sub-5ms session caching, rate limiting, and asynchronous background jobs.", tradeoffs: "Eventual consistency for non-critical cache reads." },
+        hosting: { name: "Vercel Edge (Frontend) + AWS ECS / Fly.io (Backend)", reason: "Global edge CDN paired with containerized backend autoscaling.", tradeoffs: "Cross-cloud latency if regions are misconfigured." },
+        ci_cd: { name: "GitHub Actions + Docker Multi-Stage Builds", reason: "Automated CI testing, security linting, and zero-downtime rolling deploys.", tradeoffs: "Runner concurrency costs for large matrix builds." },
+        observability: { name: "OpenTelemetry + Datadog / Sentry", reason: "Distributed end-to-end tracing and error alerting.", tradeoffs: "Ingestion data management required for high-volume logs." }
+      },
+      schema: {
+        databaseType: "PostgreSQL 16 with Row-Level Security",
+        tables: [
+          {
+            name: "tenants",
+            purpose: "Multi-tenant organizational accounts and subscription tiers.",
+            columns: [
+              { name: "id", type: "UUID", constraints: ["PK", "NOT NULL"], description: "Unique tenant identifier" },
+              { name: "name", type: "VARCHAR(128)", constraints: ["NOT NULL"], description: "Organization name" },
+              { name: "plan", type: "VARCHAR(32)", constraints: ["NOT NULL"], description: "Subscription tier (free, pro, enterprise)" },
+              { name: "created_at", type: "TIMESTAMPTZ", constraints: ["NOT NULL"], description: "Creation timestamp" }
+            ],
+            indexes: ["idx_tenants_plan"],
+            relationships: ["1:N -> users (tenant_id)", "1:N -> projects (tenant_id)"]
+          },
+          {
+            name: "users",
+            purpose: "User authentication profiles, RBAC roles, and tenant associations.",
+            columns: [
+              { name: "id", type: "UUID", constraints: ["PK", "NOT NULL"], description: "Unique user auth ID" },
+              { name: "tenant_id", type: "UUID", constraints: ["FK", "NOT NULL"], description: "References tenants(id)" },
+              { name: "email", type: "VARCHAR(255)", constraints: ["UNIQUE", "NOT NULL"], description: "Primary user email" },
+              { name: "role", type: "VARCHAR(32)", constraints: ["NOT NULL"], description: "Role (admin, member, viewer)" }
+            ],
+            indexes: ["idx_users_tenant_id", "idx_users_email"],
+            relationships: ["N:1 -> tenants (tenant_id)", "1:N -> audit_logs (user_id)"]
+          },
+          {
+            name: "projects",
+            purpose: "Core domain projects and analytical workspace records.",
+            columns: [
+              { name: "id", type: "UUID", constraints: ["PK", "NOT NULL"], description: "Project ID" },
+              { name: "tenant_id", type: "UUID", constraints: ["FK", "NOT NULL"], description: "References tenants(id)" },
+              { name: "title", type: "VARCHAR(255)", constraints: ["NOT NULL"], description: "Project title" },
+              { name: "status", type: "VARCHAR(32)", constraints: ["NOT NULL"], description: "State (active, archived)" }
+            ],
+            indexes: ["idx_projects_tenant_status"],
+            relationships: ["N:1 -> tenants (tenant_id)"]
+          }
+        ]
+      },
+      architecture: {
+        mermaid: `flowchart TD
+  subgraph Client_Layer ["Client & Edge Layer"]
+    Web["💻 Next.js 15 Web App<br/><b>React Server Components</b>"]
+    CDN["⚡ Cloudflare CDN & WAF<br/><b>DDoS & Edge Caching</b>"]
+  end
+
+  subgraph Ingress_Layer ["API Gateway & Ingress"]
+    Gateway["🛡️ Fastify Gateway<br/><b>JWT Auth & Rate Limiting</b>"]
+  end
+
+  subgraph Service_Layer ["Microservices & Workers"]
+    CoreAPI["⚙️ Core API Service<br/><b>Node.js / TypeScript</b>"]
+    TaskWorker["🔄 Asynchronous Worker<br/><b>BullMQ + Redis</b>"]
+  end
+
+  subgraph Data_Layer ["Persistence & Caching"]
+    DB[("🗄️ Primary Database<br/><b>PostgreSQL 16 (RLS)</b>")]
+    Cache[("⚡ Cache & Queue<br/><b>Upstash Redis</b>")]
+  end
+
+  Web --> CDN
+  CDN --> Gateway
+  Gateway --> CoreAPI
+  CoreAPI -->|ACID Queries| DB
+  CoreAPI -->|Session & Rate Limits| Cache
+  CoreAPI -.->|Enqueue Tasks| Cache
+  Cache -.->|Dequeue| TaskWorker
+  TaskWorker -->|Batch Updates| DB
+
+  classDef client fill:#1e293b,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
+  classDef gateway fill:#0f172a,stroke:#8b5cf6,stroke-width:2px,color:#f8fafc;
+  classDef service fill:#1e1b4b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+  classDef storage fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+
+  class Web,CDN client;
+  class Gateway gateway;
+  class CoreAPI,TaskWorker service;
+  class DB,Cache storage;`
+      },
+      roadmap: {
+        totalDuration: "4 Weeks (4 Sprints)",
+        phases: [
+          {
+            phaseNumber: 1,
+            name: "Architecture Foundation & Schema Setup",
+            duration: "Week 1",
+            focus: "Database modeling, PostgreSQL RLS migrations, and authentication integration.",
+            tasks: [
+              "Initialize monorepo with Next.js 15, Fastify, and TypeScript",
+              "Execute database migrations for tenants, users, and projects tables",
+              "Configure Row-Level Security (RLS) policies for multi-tenant isolation",
+              "Integrate OAuth2 / JWT authentication with session validation"
+            ],
+            risks: ["Complex RLS performance overhead on large join queries"]
+          },
+          {
+            phaseNumber: 2,
+            name: "Core API & Background Queue",
+            duration: "Week 2",
+            focus: "CRUD endpoints, Redis caching, and async BullMQ worker pipelines.",
+            tasks: [
+              "Implement Fastify REST API routes with Zod schema validation",
+              "Configure Upstash Redis for distributed session caching",
+              "Build BullMQ worker queue for async task processing and emails",
+              "Implement tenant rate-limiting middleware"
+            ],
+            risks: ["Queue backpressure during sudden spike traffic"]
+          },
+          {
+            phaseNumber: 3,
+            name: "Frontend Dashboard & Telemetry",
+            duration: "Week 3",
+            focus: "Responsive UI, interactive dashboards, and telemetry monitoring.",
+            tasks: [
+              "Construct responsive dashboard with shadcn/ui components",
+              "Implement optimistic UI updates and real-time state synchronization",
+              "Integrate OpenTelemetry tracing and Sentry error alerting",
+              "Conduct accessibility (a11y) audit"
+            ],
+            risks: ["Large initial client hydration bundle on low-end mobile devices"]
+          },
+          {
+            phaseNumber: 4,
+            name: "Testing, Hardening & Production Launch",
+            duration: "Week 4",
+            focus: "Load testing, security hardening, CI/CD pipeline, and launch.",
+            tasks: [
+              "Execute load tests with k6 up to 2,500 concurrent RPS",
+              "Perform OWASP Top 10 security audit and SQL injection fuzzing",
+              "Configure automated GitHub Actions CI/CD deployment pipeline",
+              "Verify production DNS, SSL certificates, and WAF rules"
+            ],
+            risks: ["DNS propagation delays during cutover"]
+          }
+        ]
+      }
     },
-    700 +
-    Math.random() * 400
-  );
-}
 
-// ============================================================
-// ASK NEXT QUESTION
-// ============================================================
+    ai: {
+      summary: {
+        title: "Enterprise AI & RAG Pipeline",
+        tagline: "Scalable Retrieval-Augmented Generation & Vector Search Architecture",
+        domain: "ai",
+        targetScale: "50K queries/day · Sub-250ms TTFT · Multi-Modal Support",
+        estimatedMonthlyCost: "$180 - $450 / month",
+        description: "An AI-powered knowledge retrieval engine combining Gemini / OpenAI embeddings, pgvector hybrid search, Redis semantic caching, and FastAPI streaming."
+      },
+      stack: {
+        frontend: { name: "React 19 (Vite) + Tailwind CSS + AI Stream UI", reason: "Zero-latency token streaming with reactive UI components.", tradeoffs: "Requires custom markdown and code-block renderers." },
+        backend: { name: "Python 3.12 (FastAPI) + AsyncIO Worker", reason: "Native ecosystem for LangChain, LlamaIndex, and async LLM streaming.", tradeoffs: "Requires async concurrency tuning for blocking CPU tasks." },
+        database: { name: "PostgreSQL 16 + pgvector (Hybrid HNSW Search)", reason: "Combines structured relational metadata with 1536-dim vector cosine similarity.", tradeoffs: "Requires index memory tuning (maintenance_work_mem)." },
+        caching: { name: "Redis Semantic Cache", reason: "Caches identical semantic embeddings to reduce LLM API cost by up to 60%.", tradeoffs: "Cache invalidation on document updates." },
+        hosting: { name: "Fly.io / AWS ECS (GPU/CPU) + Cloudflare", reason: "Low-latency regional compute close to vector stores.", tradeoffs: "Cold start tuning for containerized inference." },
+        ci_cd: { name: "GitHub Actions + Pytest + Vector Eval Harness", reason: "Automated regression testing and RAG retrieval recall benchmarks.", tradeoffs: "Eval dataset maintenance required." },
+        observability: { name: "Langfuse / Arize Phoenix + Sentry", reason: "LLM token usage analytics, latency breakdown, and hallucination scoring.", tradeoffs: "Data privacy compliance with prompt logging." }
+      },
+      schema: {
+        databaseType: "PostgreSQL 16 + pgvector Extension",
+        tables: [
+          {
+            name: "knowledge_bases",
+            purpose: "Document corpus containers and indexing configurations.",
+            columns: [
+              { name: "id", type: "UUID", constraints: ["PK", "NOT NULL"], description: "Knowledge base ID" },
+              { name: "title", type: "VARCHAR(255)", constraints: ["NOT NULL"], description: "Corpus title" },
+              { name: "embedding_model", type: "VARCHAR(64)", constraints: ["NOT NULL"], description: "e.g. text-embedding-004" }
+            ],
+            indexes: ["idx_kb_title"],
+            relationships: ["1:N -> document_chunks (kb_id)"]
+          },
+          {
+            name: "document_chunks",
+            purpose: "Text chunks, metadata, and 1536-dimensional semantic vector embeddings.",
+            columns: [
+              { name: "id", type: "UUID", constraints: ["PK", "NOT NULL"], description: "Chunk ID" },
+              { name: "kb_id", type: "UUID", constraints: ["FK", "NOT NULL"], description: "References knowledge_bases(id)" },
+              { name: "content", type: "TEXT", constraints: ["NOT NULL"], description: "Raw chunk content" },
+              { name: "embedding", type: "VECTOR(1536)", constraints: ["NOT NULL"], description: "Vector embedding" }
+            ],
+            indexes: ["idx_chunks_embedding_hnsw"],
+            relationships: ["N:1 -> knowledge_bases (kb_id)"]
+          }
+        ]
+      },
+      architecture: {
+        mermaid: `flowchart TD
+  subgraph Client_Layer ["Client & Ingress"]
+    UI["📱 Stream UI Client<br/><b>React 19 + SSE</b>"]
+    Edge["⚡ Cloudflare CDN<br/><b>Edge Ingress</b>"]
+  end
 
-async function askNext() {
+  subgraph Compute_Layer ["AI Pipeline"]
+    API["⚡ FastAPI Server<br/><b>Async Streaming Engine</b>"]
+    Chunker["📄 Document Ingest Worker<br/><b>OCR & Vectorizer</b>"]
+  end
 
-  if (
-    qIndex >=
-    QUESTIONS.length
-  ) {
-    return;
+  subgraph Storage_Layer ["Vector & Memory"]
+    VDB[("🗄️ PostgreSQL + pgvector<br/><b>HNSW Cosine Search</b>")]
+    Cache[("⚡ Semantic Cache<br/><b>Redis Vector Cache</b>")]
+  end
+
+  UI --> Edge
+  Edge --> API
+  API -->|Check Cache| Cache
+  API -->|Vector Retrieval| VDB
+  API -->|Stream LLM| UI
+  Chunker -->|Write Chunks| VDB
+
+  classDef client fill:#1e293b,stroke:#6366f1,stroke-width:2px,color:#f8fafc;
+  classDef compute fill:#1e1b4b,stroke:#3b82f6,stroke-width:2px,color:#f8fafc;
+  classDef storage fill:#064e3b,stroke:#10b981,stroke-width:2px,color:#f8fafc;
+
+  class UI,Edge client;
+  class API,Chunker compute;
+  class VDB,Cache storage;`
+      },
+      roadmap: {
+        totalDuration: "4 Weeks (4 Sprints)",
+        phases: [
+          {
+            phaseNumber: 1,
+            name: "Document Pipeline & Vector Store",
+            duration: "Week 1",
+            focus: "PDF/text chunking, embedding generation, and pgvector schema setup.",
+            tasks: [
+              "Configure PostgreSQL with pgvector extension and HNSW indexing",
+              "Build async document ingestion worker for PDF, Markdown, and HTML",
+              "Implement semantic chunking with overlap strategy",
+              "Benchmark embedding generation throughput"
+            ],
+            risks: ["Memory saturation during large vector index builds"]
+          },
+          {
+            phaseNumber: 2,
+            name: "RAG Retrieval & Semantic Caching",
+            duration: "Week 2",
+            focus: "Hybrid keyword + vector search and Redis semantic caching layer.",
+            tasks: [
+              "Implement reciprocal rank fusion (RRF) hybrid search",
+              "Integrate Redis semantic cache for exact and near-match queries",
+              "Build FastAPI streaming SSE endpoint with Gemini 2.5 Flash",
+              "Implement context window token compression"
+            ],
+            risks: ["LLM prompt drift and hallucination on domain-specific queries"]
+          },
+          {
+            phaseNumber: 3,
+            name: "Streaming Frontend & Guardrails",
+            duration: "Week 3",
+            focus: "Chat UI, citation links, token usage monitoring, and safety guardrails.",
+            tasks: [
+              "Build React streaming chat interface with citation inspector",
+              "Implement input sanitization and PII redaction guardrails",
+              "Integrate Langfuse for token analytics and cost tracking",
+              "Test response streaming latency on mobile 4G"
+            ],
+            risks: ["Network disconnects during long token generation streams"]
+          },
+          {
+            phaseNumber: 4,
+            name: "Evaluation & Production Scaling",
+            duration: "Week 4",
+            focus: "Recall evaluation, load testing, security review, and launch.",
+            tasks: [
+              "Run RAG evaluation suite (Recall@k, Precision, Faithfulness)",
+              "Execute load testing up to 100 concurrent streaming queries",
+              "Deploy autoscaling compute cluster on AWS ECS / Fly.io",
+              "Finalize production monitoring alerts"
+            ],
+            risks: ["API provider rate limiting under peak load"]
+          }
+        ]
+      }
+    }
+  };
+
+  const MOCK_QUESTIONS = {
+    saas: [
+      { id: "scale", bot: "What scale and concurrency are you planning for this SaaS product in v1?", options: ["< 1,000 DAU (Lean MVP)", "10K - 100K DAU (Growth Stage)", "1M+ DAU (High Concurrency)", "Global Multi-Region"] },
+      { id: "stack", bot: "What is your preferred core tech stack and backend framework?", options: ["Next.js 15 + PostgreSQL", "Node.js / Express + React", "Python (FastAPI) + React", "Go (Golang) Microservices"] },
+      { id: "storage", bot: "How should database tenancy and caching be structured?", options: ["PostgreSQL Row-Level Security (RLS) + Redis", "Dedicated Database per Tenant + DynamoDB", "Supabase Multi-Tenant + Upstash", "MongoDB Atlas + In-Memory Caching"] },
+      { id: "constraints", bot: "What is your primary launch priority or non-functional constraint?", options: ["Tight Budget (< $50/mo)", "Fast 2-Week Launch", "Strict Security / SOC2 Ready", "Sub-100ms Global Latency"] }
+    ],
+    ai: [
+      { id: "scale", bot: "What daily query volume and latency SLA are you planning for your AI tool?", options: ["< 1,000 queries/day (Prototype)", "10K - 50K queries/day (Production RAG)", "500K+ queries/day (High Throughput)", "Sub-200ms real-time voice/chat"] },
+      { id: "stack", bot: "What LLM orchestration pipeline and framework do you prefer?", options: ["Gemini 2.5 Flash API + pgvector", "Python FastAPI + LangChain", "Next.js 15 AI SDK + Pinecone", "Self-Hosted Ollama + Qdrant"] },
+      { id: "storage", bot: "How will document chunking, embeddings, and vector memory be stored?", options: ["PostgreSQL 16 + pgvector (HNSW)", "Redis Semantic Cache + Supabase", "Pinecone Serverless + S3 Lake", "Qdrant Vector DB + DynamoDB"] },
+      { id: "constraints", bot: "What is your main architectural constraint for the AI pipeline?", options: ["Keep API token cost < $100/mo", "Zero-latency streaming UX (< 50ms TTFT)", "Strict Enterprise Privacy (No training)", "Multi-modal PDF & Image OCR"] }
+    ]
+  };
+
+  function getMockQuestionsForDomain(domain) {
+    return MOCK_QUESTIONS[domain] || MOCK_QUESTIONS.saas;
   }
 
-  const q =
-    QUESTIONS[qIndex];
-
-  await addMessage(
-    q.bot,
-    "bot",
-    true
-  );
-
-  renderOptions(
-    q.options
-  );
-
-  setProgress();
-}
-
-// ============================================================
-// RESTART INTERVIEW
-// ============================================================
-
-function restart() {
-
-  qIndex = 0;
-
-  for (
-    const k of Object.keys(
-      answers
-    )
-  ) {
-    delete answers[k];
+  function getMockBlueprint(domain, answers) {
+    const base = ARCHETYPE_BLUEPRINTS[domain] || ARCHETYPE_BLUEPRINTS.saas;
+    const bp = JSON.parse(JSON.stringify(base));
+    bp.id = `bp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
+    bp.timestamp = new Date().toISOString();
+    if (answers.idea) {
+      bp.summary.description = `Tailored architecture for: "${answers.idea}". ${bp.summary.description}`;
+    }
+    return bp;
   }
 
-  if (messagesEl) {
-    messagesEl.innerHTML = "";
+  // ==============================================================================
+  // 6. MULTI-TAB BLUEPRINT VISUALIZER RENDERER
+  // ==============================================================================
+
+  function renderBlueprint(blueprint) {
+    if (!blueprint) return;
+
+    renderOverviewTab(blueprint);
+    renderSchemaTab(blueprint);
+    renderArchitectureTab(blueprint);
+    renderRoadmapTab(blueprint);
+
+    const actions = document.getElementById("blueprint-actions");
+    if (actions) actions.style.display = "flex";
+
+    const empty = document.getElementById("bp-empty-state");
+    if (empty) empty.style.display = "none";
   }
 
-  if (blueprintEl) {
+  function renderOverviewTab(bp) {
+    const container = document.getElementById("bp-overview");
+    if (!container) return;
 
-    blueprintEl.innerHTML = `
-      <div class="bp-empty">
-        <svg
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="1.5"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-          <polyline
-            points="14 2 14 8 20 8"
-          />
-        </svg>
-        <p>
-          Your blueprint will materialize here as you answer.
-        </p>
+    const s = bp.summary || {};
+    const stack = bp.stack || {};
+
+    const stackItems = Object.entries(stack).map(([layer, item]) => `
+      <div class="stack-card">
+        <span class="stack-layer">${escapeHTML(layer.replace('_', ' ').toUpperCase())}</span>
+        <h4 class="stack-name">${escapeHTML(item.name || 'Standard Service')}</h4>
+        <p class="stack-reason"><strong>Why:</strong> ${escapeHTML(item.reason || 'Optimized for performance and scalability.')}</p>
+        ${item.tradeoffs ? `<p class="stack-tradeoff"><strong>Tradeoff:</strong> ${escapeHTML(item.tradeoffs)}</p>` : ''}
+      </div>
+    `).join('');
+
+    container.innerHTML = `
+      <div class="bp-summary-header">
+        <span class="bp-domain-badge">${escapeHTML(s.domain || 'Full-Stack').toUpperCase()}</span>
+        <h3 class="bp-title">${escapeHTML(s.title || 'Architecture Blueprint')}</h3>
+        <p class="bp-tagline">${escapeHTML(s.tagline || '')}</p>
+        <p class="bp-desc">${escapeHTML(s.description || '')}</p>
+        <div class="bp-meta-row">
+          <span class="bp-meta-tag">🎯 Scale: ${escapeHTML(s.targetScale || 'Production Ready')}</span>
+          <span class="bp-meta-tag">💰 Est. Cost: ${escapeHTML(s.estimatedMonthlyCost || '$50 - $150 / mo')}</span>
+        </div>
+      </div>
+
+      <div class="bp-section">
+        <h4 class="bp-section-title">7-Layer Technology Stack & Tradeoffs</h4>
+        <div class="stack-grid">${stackItems}</div>
+      </div>
+
+      <div class="bp-section">
+        <h4 class="bp-section-title">Recruiter-Grade Resume Impact</h4>
+        <div class="resume-impact-card">
+          <p>🌟 <strong>Demonstrated Competencies:</strong></p>
+          <ul>
+            <li>Architected and deployed a scalable ${escapeHTML(s.domain || 'full-stack')} application engineered for ${escapeHTML(s.targetScale || 'production scale')}.</li>
+            <li>Implemented secure, low-latency data models with ${escapeHTML(stack.database?.name || 'PostgreSQL')} and ${escapeHTML(stack.caching?.name || 'Redis caching')}.</li>
+            <li>Designed resilient CI/CD and telemetry pipelines with automated regression and performance validation.</li>
+          </ul>
+        </div>
       </div>
     `;
   }
 
-  if (inputEl) {
-    inputEl.disabled = false;
-    inputEl.value = "";
-  }
+  function renderSchemaTab(bp) {
+    const container = document.getElementById("bp-schema");
+    if (!container) return;
 
-  if (optionsEl) {
-    optionsEl.innerHTML = "";
-  }
+    const schema = bp.schema || { tables: [] };
+    const tables = schema.tables || [];
 
-  setProgress();
-
-  askNext();
-}
-
-// ============================================================
-// FORM SUBMISSION
-// ============================================================
-
-if (formEl) {
-
-  formEl.addEventListener(
-    "submit",
-    e => {
-
-      e.preventDefault();
-
-      submitAnswer(
-        inputEl.value
-      );
-
+    if (tables.length === 0) {
+      container.innerHTML = `<p class="muted">No schema entities defined for this blueprint.</p>`;
+      return;
     }
-  );
-}
 
-// ============================================================
-// START INTERVIEW WHEN DEMO ENTERS VIEW
-// ============================================================
+    const tableCards = tables.map(tbl => {
+      const cols = (tbl.columns || []).map(col => `
+        <tr>
+          <td><span class="col-name">${escapeHTML(col.name)}</span></td>
+          <td><span class="col-type">${escapeHTML(col.type)}</span></td>
+          <td><span class="col-constraints">${(col.constraints || []).map(c => `<span class="badge-constraint">${escapeHTML(c)}</span>`).join(' ')}</span></td>
+          <td><span class="col-desc">${escapeHTML(col.description || '')}</span></td>
+        </tr>
+      `).join('');
 
-const demo =
-  document.getElementById(
-    "demo"
-  );
+      return `
+        <div class="schema-table-card">
+          <div class="schema-table-head">
+            <span class="table-icon">🗄️</span>
+            <span class="table-name">${escapeHTML(tbl.name)}</span>
+            <span class="table-purpose">${escapeHTML(tbl.purpose || '')}</span>
+          </div>
+          <table class="schema-table">
+            <thead>
+              <tr><th>Column</th><th>Type</th><th>Constraints</th><th>Description</th></tr>
+            </thead>
+            <tbody>${cols}</tbody>
+          </table>
+          ${tbl.indexes?.length ? `<div class="schema-meta"><strong>Indexes:</strong> ${escapeHTML(tbl.indexes.join(', '))}</div>` : ''}
+          ${tbl.relationships?.length ? `<div class="schema-meta"><strong>Relations:</strong> ${escapeHTML(tbl.relationships.join(' | '))}</div>` : ''}
+        </div>
+      `;
+    }).join('');
 
-if (
-  demo &&
-  messagesEl
-) {
+    container.innerHTML = `
+      <div class="schema-header">
+        <span class="badge-engine">Engine: ${escapeHTML(schema.databaseType || 'PostgreSQL 16')}</span>
+      </div>
+      <div class="schema-grid">${tableCards}</div>
+    `;
+  }
 
-  const demoIO =
-    new IntersectionObserver(
-      entries => {
+  function renderArchitectureTab(bp) {
+    const container = document.getElementById("mermaid-render");
+    if (!container) return;
 
-        entries.forEach(e => {
+    const mermaidSyntax = bp.architecture?.mermaid || `flowchart TD\n  Client[Web Client] --> Gateway[API Gateway]\n  Gateway --> DB[(Database)]`;
+    const cleanSyntax = sanitizeMermaidSyntax(mermaidSyntax);
 
-          if (
-            e.isIntersecting &&
-            qIndex === 0 &&
-            messagesEl.children.length === 0
-          ) {
+    container.innerHTML = `<pre class="mermaid">${escapeHTML(cleanSyntax)}</pre>`;
 
-            askNext();
-
-            demoIO.disconnect();
-          }
-
-        });
-
-      },
-      {
-        threshold: 0.3
+    if (typeof mermaid !== 'undefined') {
+      try {
+        mermaid.init(undefined, container.querySelectorAll('.mermaid'));
+      } catch (e) {
+        console.warn('Mermaid rendering error:', e);
       }
-    );
-
-  demoIO.observe(demo);
-}
-
-// ============================================================
-// SAMPLE BLUEPRINT MODAL
-// ============================================================
-
-const modal =
-  document.getElementById(
-    "sample-modal"
-  );
-
-const openSample =
-  document.getElementById(
-    "open-sample"
-  );
-
-if (
-  modal &&
-  openSample
-) {
-
-  openSample.addEventListener(
-    "click",
-    () => {
-
-      modal.classList.add(
-        "open"
-      );
-
-      modal.setAttribute(
-        "aria-hidden",
-        "false"
-      );
-
-      document.body.style.overflow =
-        "hidden";
     }
-  );
+  }
 
-  modal
-    .querySelectorAll(
-      "[data-close-modal]"
-    )
-    .forEach(el => {
+  function renderRoadmapTab(bp) {
+    const container = document.getElementById("bp-roadmap");
+    if (!container) return;
 
-      el.addEventListener(
-        "click",
-        closeModal
-      );
+    const roadmap = bp.roadmap || { phases: [] };
+    const phases = roadmap.phases || [];
 
+    let totalTasks = 0;
+    const phaseCards = phases.map(phase => {
+      const tasks = (phase.tasks || []).map(task => {
+        totalTasks++;
+        return `
+          <label class="task-checkbox-label">
+            <input type="checkbox" class="task-check" />
+            <span>${escapeHTML(task)}</span>
+          </label>
+        `;
+      }).join('');
+
+      return `
+        <div class="roadmap-phase-card">
+          <div class="phase-header">
+            <span class="phase-badge">Phase ${escapeHTML(String(phase.phaseNumber || '1'))}</span>
+            <span class="phase-duration">${escapeHTML(phase.duration || '')}</span>
+          </div>
+          <h4 class="phase-title">${escapeHTML(phase.name)}</h4>
+          <p class="phase-focus">${escapeHTML(phase.focus || '')}</p>
+          <div class="phase-tasks">${tasks}</div>
+          ${phase.risks?.length ? `<div class="phase-risks">⚠️ <strong>Risks:</strong> ${escapeHTML(phase.risks.join('; '))}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    container.innerHTML = `
+      <div class="roadmap-header">
+        <span class="badge-timeline">⏱️ Timeline: ${escapeHTML(roadmap.totalDuration || '4 Weeks')}</span>
+        <span class="roadmap-progress-badge" id="roadmap-completion-badge">0 / ${totalTasks} Tasks Completed (0%)</span>
+      </div>
+      <div class="roadmap-timeline">${phaseCards}</div>
+    `;
+
+    container.querySelectorAll('.task-check').forEach(chk => {
+      chk.addEventListener('change', () => {
+        const checked = container.querySelectorAll('.task-check:checked').length;
+        const pct = totalTasks > 0 ? Math.round((checked / totalTasks) * 100) : 0;
+        const badge = document.getElementById('roadmap-completion-badge');
+        if (badge) badge.textContent = `${checked} / ${totalTasks} Tasks Completed (${pct}%)`;
+      });
+    });
+  }
+
+  function switchTab(targetTab) {
+    const tabBtns = document.querySelectorAll('.bp-tab');
+    const tabPanels = document.querySelectorAll('.bp-panel, .bp-tab-panel');
+
+    tabBtns.forEach(btn => {
+      const match = btn.dataset.tab === targetTab;
+      btn.classList.toggle('active', match);
+      btn.setAttribute('aria-selected', match ? 'true' : 'false');
     });
 
-  document.addEventListener(
-    "keydown",
-    e => {
+    tabPanels.forEach(panel => {
+      const match = panel.id === `bp-${targetTab}`;
+      panel.classList.toggle('active', match);
+    });
+  }
 
-      if (
-        e.key === "Escape"
-      ) {
-        closeModal();
+  // ==============================================================================
+  // 7. EXPORT ENGINE (MARKDOWN, JSON, PRINT)
+  // ==============================================================================
+
+  function buildMarkdownString(bp) {
+    if (!bp) return '';
+    const s = bp.summary || {};
+    const stack = bp.stack || {};
+    const schema = bp.schema || { tables: [] };
+    const roadmap = bp.roadmap || { phases: [] };
+
+    let md = `# ${s.title || 'Architecture Blueprint'}\n\n`;
+    md += `> **Tagline:** ${s.tagline || ''}\n`;
+    md += `> **Scale:** ${s.targetScale || 'Production'} | **Est. Cost:** ${s.estimatedMonthlyCost || '$50 - $150/mo'}\n\n`;
+    md += `## Executive Summary\n${s.description || ''}\n\n`;
+
+    md += `## 7-Layer Technology Stack\n`;
+    for (const [layer, item] of Object.entries(stack)) {
+      md += `- **${layer.toUpperCase()}**: ${item.name}\n  - *Rationale*: ${item.reason}\n`;
+      if (item.tradeoffs) md += `  - *Tradeoffs*: ${item.tradeoffs}\n`;
+    }
+    md += `\n`;
+
+    md += `## Database Schema (${schema.databaseType || 'PostgreSQL 16'})\n\n`;
+    for (const tbl of (schema.tables || [])) {
+      md += `### Table: \`${tbl.name}\`\n${tbl.purpose || ''}\n\n`;
+      md += `| Column | Type | Constraints | Description |\n|---|---|---|---|\n`;
+      for (const col of (tbl.columns || [])) {
+        md += `| \`${col.name}\` | ${col.type} | ${(col.constraints || []).join(' ')} | ${col.description || ''} |\n`;
+      }
+      md += `\n`;
+    }
+
+    if (bp.architecture?.mermaid) {
+      md += `## System Architecture Diagram\n\`\`\`mermaid\n${sanitizeMermaidSyntax(bp.architecture.mermaid)}\n\`\`\`\n\n`;
+    }
+
+    md += `## Execution Roadmap (${roadmap.totalDuration || '4 Weeks'})\n\n`;
+    for (const phase of (roadmap.phases || [])) {
+      md += `### Phase ${phase.phaseNumber}: ${phase.name} (${phase.duration})\n`;
+      md += `*Focus*: ${phase.focus || ''}\n\n`;
+      for (const t of (phase.tasks || [])) {
+        md += `- [ ] ${t}\n`;
+      }
+      md += `\n`;
+    }
+
+    return md;
+  }
+
+  function downloadFile(filename, text, mimeType = 'text/plain') {
+    const blob = new Blob([text], { type: mimeType });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function exportMarkdown(bp) {
+    if (!bp) return;
+    const md = buildMarkdownString(bp);
+    const filename = `${(bp.summary?.title || 'blueprint').toLowerCase().replace(/[^a-z0-9]/g, '_')}.md`;
+    downloadFile(filename, md, 'text/markdown');
+    showToast('Markdown blueprint exported!', 'success');
+  }
+
+  function exportJSON(bp) {
+    if (!bp) return;
+    const json = JSON.stringify(bp, null, 2);
+    const filename = `${(bp.summary?.title || 'blueprint').toLowerCase().replace(/[^a-z0-9]/g, '_')}.json`;
+    downloadFile(filename, json, 'application/json');
+    showToast('Structured JSON blueprint exported!', 'success');
+  }
+
+  function exportPDF() {
+    window.print();
+  }
+
+  // ==============================================================================
+  // 8. INTERVIEW STATE MACHINE & CONTROLLER
+  // ==============================================================================
+
+  class InterviewEngine {
+    constructor() {
+      this.currentTurn = 0;
+      this.domain = 'saas';
+      this.answers = {};
+      this.questions = [];
+      this.isCompleted = false;
+    }
+
+    start(initialDomain = 'saas') {
+      this.currentTurn = 0;
+      this.domain = initialDomain;
+      this.answers = {};
+      this.isCompleted = false;
+      this.questions = getMockQuestionsForDomain(this.domain);
+    }
+
+    getCurrentQuestion() {
+      if (this.currentTurn === 0) {
+        return {
+          id: "idea",
+          bot: "Hey 👋 I'm Architect AI. In one or two sentences, what are you looking to build?",
+          options: ["A B2B SaaS dashboard", "An AI RAG search tool", "An e-commerce marketplace", "A real-time mobile app"]
+        };
+      }
+      const qIdx = this.currentTurn - 1;
+      if (qIdx < this.questions.length) {
+        return this.questions[qIdx];
+      }
+      return null;
+    }
+
+    recordAnswer(text) {
+      const currentQ = this.getCurrentQuestion();
+      if (currentQ) {
+        this.answers[currentQ.id] = text;
+        if (currentQ.id === "idea") {
+          this.domain = classifyDomain(text);
+          this.questions = getMockQuestionsForDomain(this.domain);
+        }
+      }
+      this.currentTurn++;
+      if (this.currentTurn > this.questions.length) {
+        this.isCompleted = true;
+      }
+    }
+
+    getProgressPercentage() {
+      const total = this.questions.length + 1;
+      return Math.min(100, Math.round((this.currentTurn / total) * 100));
+    }
+  }
+
+  // ==============================================================================
+  // 9. UI HELPERS & NOTIFICATIONS
+  // ==============================================================================
+
+  function showToast(message, type = 'info') {
+    const container = document.getElementById('toast-container') || document.body;
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type} glass`;
+    toast.innerHTML = `
+      <div class="toast-content">
+        <span class="toast-message">${escapeHTML(message)}</span>
+      </div>
+      <button class="toast-close" aria-label="Close">&times;</button>
+    `;
+    const closeBtn = toast.querySelector('.toast-close');
+    if (closeBtn) closeBtn.addEventListener('click', () => toast.remove());
+    container.appendChild(toast);
+    setTimeout(() => toast.remove(), 4000);
+  }
+
+  function openModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.add('open');
+    modal.setAttribute('aria-hidden', 'false');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (!modal) return;
+    modal.classList.remove('open');
+    modal.setAttribute('aria-hidden', 'true');
+    document.body.style.overflow = '';
+  }
+
+  function showTypingIndicator() {
+    const messages = document.getElementById('messages');
+    if (!messages) return null;
+    const typing = document.createElement('div');
+    typing.className = 'msg bot typing';
+    typing.innerHTML = '<span></span><span></span><span></span>';
+    messages.appendChild(typing);
+    messages.scrollTop = messages.scrollHeight;
+    return typing;
+  }
+
+  async function appendChatMessage(text, who, typing = false) {
+    const messages = document.getElementById('messages');
+    if (!messages) return;
+
+    const el = document.createElement('div');
+    el.className = `msg ${who}`;
+    messages.appendChild(el);
+
+    if (who === 'user' || !typing) {
+      el.textContent = text;
+      messages.scrollTop = messages.scrollHeight;
+      return;
+    }
+
+    for (let i = 0; i < text.length; i++) {
+      el.textContent += text.charAt(i);
+      messages.scrollTop = messages.scrollHeight;
+      await new Promise(r => setTimeout(r, 14));
+    }
+  }
+
+  function renderSuggestionChips(options, onSelect) {
+    const optsContainer = document.getElementById('options');
+    if (!optsContainer) return;
+    optsContainer.innerHTML = (options || []).map(opt => `
+      <button type="button" class="option-chip">${escapeHTML(opt)}</button>
+    `).join('');
+
+    optsContainer.querySelectorAll('.option-chip').forEach(btn => {
+      btn.addEventListener('click', () => onSelect(btn.textContent));
+    });
+  }
+
+  // ==============================================================================
+  // 10. VISUAL FX: PARTICLES & SPOTLIGHT GLOW
+  // ==============================================================================
+
+  function initParticles() {
+    const canvas = document.getElementById('particles');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let w, h, particles = [];
+    const count = window.innerWidth < 768 ? 24 : 50;
+
+    function resize() {
+      w = canvas.width = window.innerWidth;
+      h = canvas.height = window.innerHeight;
+    }
+
+    function init() {
+      particles = Array.from({ length: count }, () => ({
+        x: Math.random() * w,
+        y: Math.random() * h,
+        vx: (Math.random() - 0.5) * 0.35,
+        vy: (Math.random() - 0.5) * 0.35,
+        r: Math.random() * 1.5 + 0.6
+      }));
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, w, h);
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > w) p.vx *= -1;
+        if (p.y < 0 || p.y > h) p.vy *= -1;
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(139,148,255,.45)';
+        ctx.fill();
       }
 
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.hypot(dx, dy);
+          if (dist < 120) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(99,102,241,${(1 - dist / 120) * 0.15})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(step);
     }
-  );
-}
 
-function closeModal() {
+    resize();
+    init();
+    step();
+    window.addEventListener('resize', () => { resize(); init(); });
+  }
 
-  if (!modal) return;
+  function initCursorGlow() {
+    const glow = document.getElementById('cursor-glow');
+    if (!glow || !window.matchMedia('(hover:hover)').matches) return;
+    window.addEventListener('mousemove', e => {
+      glow.classList.add('active');
+      glow.style.transform = `translate(${e.clientX}px, ${e.clientY}px) translate(-50%,-50%)`;
+    });
+    window.addEventListener('mouseleave', () => glow.classList.remove('active'));
+  }
 
-  modal.classList.remove(
-    "open"
-  );
+  function initSpotlightHover() {
+    document.querySelectorAll('.feature-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mx', `${e.clientX - r.left}px`);
+        card.style.setProperty('--my', `${e.clientY - r.top}px`);
+      });
+    });
+  }
 
-  modal.setAttribute(
-    "aria-hidden",
-    "true"
-  );
+  function initStatsCounters() {
+    const statElements = document.querySelectorAll('.stat-num');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (!e.isIntersecting) return;
+        const el = e.target;
+        const end = parseFloat(el.dataset.count) || 0;
+        const suffix = el.dataset.suffix || '';
+        const dur = 1200;
+        const start = performance.now();
+        const tick = now => {
+          const p = Math.min(1, (now - start) / dur);
+          const eased = 1 - Math.pow(1 - p, 3);
+          el.textContent = Math.round(end * eased) + suffix;
+          if (p < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+        observer.unobserve(el);
+      });
+    }, { threshold: 0.3 });
+    statElements.forEach(s => observer.observe(s));
+  }
 
-  document.body.style.overflow =
-    "";
-}
+  function initFaqAccordion() {
+    const faqItems = document.querySelectorAll('.faq-item');
+    faqItems.forEach(item => {
+      const btn = item.querySelector('.faq-q');
+      if (btn) {
+        btn.addEventListener('click', () => {
+          const isOpen = item.classList.toggle('open');
+          btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+        });
+      }
+    });
+  }
 
-// ============================================================
-// CURRENT YEAR
-// ============================================================
+  function initScrollReveal() {
+    const revealElements = document.querySelectorAll('.reveal');
+    revealElements.forEach(el => {
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        el.classList.add('visible');
+      }
+    });
 
-const year =
-  document.getElementById(
-    "year"
-  );
+    if (typeof IntersectionObserver !== 'undefined') {
+      const observer = new IntersectionObserver(entries => {
+        entries.forEach(e => {
+          if (e.isIntersecting) {
+            e.target.classList.add('visible');
+            observer.unobserve(e.target);
+          }
+        });
+      }, { threshold: 0.05, rootMargin: '0px 0px 50px 0px' });
+      revealElements.forEach(el => observer.observe(el));
+    } else {
+      revealElements.forEach(el => el.classList.add('visible'));
+    }
+  }
 
-if (year) {
-  year.textContent =
-    new Date().getFullYear();
-}
+  function initSmoothScroll() {
+    document.querySelectorAll('[data-scroll]').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(btn.dataset.scroll);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', e => {
+        const href = link.getAttribute('href');
+        if (href && href.length > 1 && href.startsWith('#')) {
+          e.preventDefault();
+          const target = document.querySelector(href);
+          if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      });
+    });
+  }
+
+  function initMobileNav() {
+    const toggle = document.getElementById('menu-toggle');
+    const mobileNav = document.getElementById('mobile-nav');
+    if (toggle && mobileNav) {
+      toggle.addEventListener('click', () => {
+        const isOpen = mobileNav.classList.toggle('open');
+        toggle.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+      mobileNav.querySelectorAll('a').forEach(a => {
+        a.addEventListener('click', () => {
+          mobileNav.classList.remove('open');
+          toggle.setAttribute('aria-expanded', 'false');
+        });
+      });
+    }
+  }
+
+  // ==============================================================================
+  // 11. APPLICATION BOOTSTRAP & EVENT ORCHESTRATION
+  // ==============================================================================
+
+  let activeInterview = new InterviewEngine();
+  let currentActiveBlueprint = null;
+
+  async function handleUserAnswer(text) {
+    if (!text || text.trim().length === 0) return;
+    const input = document.getElementById('answer-input');
+    if (input) input.value = '';
+
+    const optsContainer = document.getElementById('options');
+    if (optsContainer) optsContainer.innerHTML = '';
+
+    await appendChatMessage(text, 'user');
+    activeInterview.recordAnswer(text);
+
+    const fill = document.getElementById('progress-fill');
+    const label = document.getElementById('progress-label');
+    const pct = activeInterview.getProgressPercentage();
+    if (fill) fill.style.width = `${pct}%`;
+    if (label) label.textContent = activeInterview.isCompleted ? 'Synthesizing Blueprint...' : `Question ${activeInterview.currentTurn + 1} / ${activeInterview.questions.length + 1}`;
+
+    const typing = showTypingIndicator();
+
+    setTimeout(async () => {
+      if (typing) typing.remove();
+
+      if (activeInterview.isCompleted) {
+        await appendChatMessage('Synthesizing your production-ready blueprint...', 'bot', true);
+        const bp = getMockBlueprint(activeInterview.domain, activeInterview.answers);
+        currentActiveBlueprint = bp;
+        saveBlueprint(bp);
+        renderBlueprint(bp);
+        await appendChatMessage('✨ Done! Your 7-layer architecture blueprint, ERD schema, Mermaid diagram, and sprint roadmap are ready on the right.', 'bot', true);
+        renderRestartButton();
+      } else {
+        const nextQ = activeInterview.getCurrentQuestion();
+        if (nextQ) {
+          await appendChatMessage(nextQ.bot, 'bot', true);
+          renderSuggestionChips(nextQ.options, handleUserAnswer);
+        }
+      }
+    }, 600);
+  }
+
+  function renderRestartButton() {
+    const optsContainer = document.getElementById('options');
+    if (!optsContainer) return;
+    optsContainer.innerHTML = `<button type="button" class="option-chip restart-chip" id="btn-restart-interview">↻ Start New Interview</button>`;
+    const btn = document.getElementById('btn-restart-interview');
+    if (btn) {
+      btn.addEventListener('click', () => {
+        const messages = document.getElementById('messages');
+        if (messages) messages.innerHTML = '';
+        activeInterview.start();
+        const fill = document.getElementById('progress-fill');
+        const label = document.getElementById('progress-label');
+        if (fill) fill.style.width = '0%';
+        if (label) label.textContent = 'Question 1 / 5';
+        const q1 = activeInterview.getCurrentQuestion();
+        appendChatMessage(q1.bot, 'bot', true);
+        renderSuggestionChips(q1.options, handleUserAnswer);
+      });
+    }
+  }
+
+  function renderHistoryModal() {
+    const list = document.getElementById('history-list');
+    if (!list) return;
+    const history = getHistory();
+    if (history.length === 0) {
+      list.innerHTML = `<p class="muted" style="text-align:center; padding:32px 0;">No saved blueprints yet. Complete an interview to save your architecture!</p>`;
+      return;
+    }
+    list.innerHTML = history.map(item => `
+      <div class="history-item glass" data-id="${escapeHTML(item.id)}">
+        <div class="history-item-info">
+          <h4>${escapeHTML(item.summary?.title || 'Architecture Blueprint')}</h4>
+          <p class="history-date">${new Date(item.timestamp).toLocaleString()} · ${escapeHTML(item.summary?.domain || 'SaaS').toUpperCase()}</p>
+        </div>
+        <div class="history-item-actions">
+          <button type="button" class="btn btn-sm btn-hero btn-load-history" data-id="${escapeHTML(item.id)}">Load</button>
+          <button type="button" class="btn btn-sm btn-ghost btn-danger btn-del-history" data-id="${escapeHTML(item.id)}">Delete</button>
+        </div>
+      </div>
+    `).join('');
+
+    list.querySelectorAll('.btn-load-history').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const item = history.find(h => h.id === btn.dataset.id);
+        if (item) {
+          currentActiveBlueprint = item;
+          renderBlueprint(item);
+          closeModal('history-modal');
+          showToast('Loaded blueprint into visualizer', 'success');
+        }
+      });
+    });
+
+    list.querySelectorAll('.btn-del-history').forEach(btn => {
+      btn.addEventListener('click', () => {
+        deleteBlueprint(btn.dataset.id);
+        renderHistoryModal();
+        showToast('Deleted blueprint from history', 'info');
+      });
+    });
+  }
+
+  function initApp() {
+    initParticles();
+    initCursorGlow();
+    initSpotlightHover();
+    initStatsCounters();
+    initFaqAccordion();
+    initScrollReveal();
+    initSmoothScroll();
+    initMobileNav();
+
+    document.querySelectorAll('.bp-tab').forEach(btn => {
+      btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    document.querySelectorAll('[data-open-settings]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const keyInput = document.getElementById('gemini-api-key');
+        if (keyInput) keyInput.value = getApiKey() || '';
+        openModal('settings-modal');
+      });
+    });
+
+    document.querySelectorAll('[data-open-history]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        renderHistoryModal();
+        openModal('history-modal');
+      });
+    });
+
+    const sampleBtn = document.getElementById('open-sample');
+    if (sampleBtn) {
+      sampleBtn.addEventListener('click', () => openModal('sample-modal'));
+    }
+
+    const loadSampleBtn = document.getElementById('btn-load-sample-visualizer');
+    if (loadSampleBtn) {
+      loadSampleBtn.addEventListener('click', () => {
+        const sample = ARCHETYPE_BLUEPRINTS.saas;
+        currentActiveBlueprint = sample;
+        renderBlueprint(sample);
+        closeModal('sample-modal');
+        const demoSection = document.getElementById('demo');
+        if (demoSection) demoSection.scrollIntoView({ behavior: 'smooth' });
+        showToast('Sample blueprint loaded into visualizer!', 'success');
+      });
+    }
+
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        closeModal('settings-modal');
+        closeModal('history-modal');
+        closeModal('sample-modal');
+      });
+    });
+
+    const saveSettingsBtn = document.getElementById('btn-save-settings');
+    if (saveSettingsBtn) {
+      saveSettingsBtn.addEventListener('click', () => {
+        const input = document.getElementById('gemini-api-key');
+        if (input) setApiKey(input.value);
+        closeModal('settings-modal');
+        showToast('API settings saved securely in browser!', 'success');
+      });
+    }
+
+    const clearKeyBtn = document.getElementById('btn-clear-key');
+    if (clearKeyBtn) {
+      clearKeyBtn.addEventListener('click', () => {
+        clearApiKey();
+        const input = document.getElementById('gemini-api-key');
+        if (input) input.value = '';
+        showToast('Gemini API key cleared from storage', 'info');
+      });
+    }
+
+    const clearHistBtn = document.getElementById('btn-clear-all-history');
+    if (clearHistBtn) {
+      clearHistBtn.addEventListener('click', () => {
+        clearHistory();
+        renderHistoryModal();
+        showToast('Session history cleared', 'info');
+      });
+    }
+
+    const expMdBtn = document.getElementById('btn-export-markdown');
+    if (expMdBtn) expMdBtn.addEventListener('click', () => exportMarkdown(currentActiveBlueprint));
+
+    const expJsonBtn = document.getElementById('btn-export-json');
+    if (expJsonBtn) expJsonBtn.addEventListener('click', () => exportJSON(currentActiveBlueprint));
+
+    const expPdfBtn = document.getElementById('btn-export-pdf');
+    if (expPdfBtn) expPdfBtn.addEventListener('click', exportPDF);
+
+    const answerForm = document.getElementById('answer-form');
+    if (answerForm) {
+      answerForm.addEventListener('submit', e => {
+        e.preventDefault();
+        const input = document.getElementById('answer-input');
+        if (input) handleUserAnswer(input.value);
+      });
+    }
+
+    activeInterview.start();
+    const q1 = activeInterview.getCurrentQuestion();
+    const messages = document.getElementById('messages');
+    if (messages && messages.children.length === 0) {
+      appendChatMessage(q1.bot, 'bot', false);
+      renderSuggestionChips(q1.options, handleUserAnswer);
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initApp);
+  } else {
+    initApp();
+  }
+
+})();
