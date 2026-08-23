@@ -1,102 +1,316 @@
-# Architect AI — Interactive Landing Page
+# 🏗️ Architect AI
 
-> From idea to architecture, in one interview.
+> **Turn your project idea into a production-grade technical architecture.**
 
-A dark, cyberpunk-styled landing page for **Architect AI**, a concept product that interviews developers about their project idea and generates a blueprint — recommended stack, roadmap, and resume impact — in real time. This repo is the marketing/demo front end: a fully static, framework-free site with a working mock interview built in vanilla JS.
+Architect AI is an interactive, AI-powered architecture studio that helps developers transform an idea into a structured technical blueprint.
 
-## Live demo flow
+Instead of starting with a random tech stack or a blank document, Architect AI conducts an adaptive technical interview and generates a complete architecture plan—including the technology stack, database schema, system architecture, engineering trade-offs, and development roadmap.
 
-Scroll to the **"Try it now"** section and the interview starts automatically. Answer four questions (via the quick-reply chips or by typing your own answer) and watch the blueprint panel fill in live:
+🔗 **Live Demo:** [Architect AI Live Demo](https://darshil2008.github.io/Architect-Ai/?utm_source=chatgpt.com)
 
-1. What are you building?
-2. Who is it for?
-3. What's your strongest stack?
-4. How soon do you want v1 shipped?
+---
 
-Based on your answers, the app generates:
-- A **recommended stack** (matched against your stated skill)
-- A **roadmap** (scaled to your chosen timeline — weekend sprint through 3-month build)
-- A **resume impact** line summarizing the shipped project
+## ✨ Features
 
-Click **Restart interview** to run it again.
+### 🧠 Dynamic Adaptive AI Interview
 
-## Tech stack
+Architect AI doesn't rely on a static questionnaire.
 
-No frameworks, no build step — just three files:
+It conducts a **multi-turn technical discovery process** that adapts based on the user's answers.
 
-| File         | Purpose                                                              |
-|--------------|-----------------------------------------------------------------------|
-| `index.html` | Page structure and markup                                            |
-| `styles.css` | All styling — dark theme, glassmorphism, animations, responsive layout |
-| `script.js`  | All behavior — interview engine, blueprint generation, UI interactions |
+- 🤖 Live Gemini API integration
+- 🔐 Client-side BYOK API key storage using LocalStorage
+- 💬 Multi-turn adaptive technical interview
+- 🧩 Context-aware follow-up questions
+- 📈 Discovery based on scale and requirements
 
-Fonts (Google Fonts, loaded via CDN): **Inter** (body), **Space Grotesk** (display/headings), **JetBrains Mono** (code/labels).
+---
 
-## Project structure
+### 🔌 Offline Heuristic Engine
 
+No API key? Architect AI can still help.
+
+The project includes an intelligent offline heuristic engine with **10 domain archetypes**, allowing the interview to adapt even without an AI API.
+
+Supported domains include:
+
+- 🤖 AI / RAG Applications
+- 💼 SaaS Platforms
+- 🛒 E-Commerce
+- 💳 FinTech
+- 🌐 IoT Systems
+- 📱 Consumer Applications
+- And more...
+
+The engine analyzes requirements such as:
+
+- Expected scale
+- Concurrent users
+- Database constraints
+- Real-time requirements
+- System complexity
+- Domain-specific needs
+
+---
+
+## 📊 Multi-Tab Engineering Visualizer
+
+Architect AI generates more than just a technology recommendation.
+
+It provides a complete engineering blueprint.
+
+### 🏗️ 7-Layer Architecture Stack
+
+Get recommendations and architectural trade-offs across:
+
+1. Frontend
+2. Ingress
+3. Compute
+4. Database
+5. Cache
+6. CI/CD
+7. Observability
+
+Each layer includes architectural rationale and implementation considerations.
+
+---
+
+### 🗄️ Database ERD Schema
+
+Visualize your data model with an interactive Entity Relationship Diagram.
+
+Features include:
+
+- Table definitions
+- Data types
+- Primary Keys
+- Foreign Keys
+- Relationships
+- Constraints
+- Query indexes
+
+---
+
+### 🔀 Live System Architecture Flowcharts
+
+Generate system architecture diagrams directly in the browser.
+
+Powered by Mermaid.js, Architect AI can visualize the flow between different parts of your system.
+
+Examples include:
+
+```text
+User
+  ↓
+Frontend
+  ↓
+API / Backend
+  ↓
+Database
+  ↓
+Cache / External Services
 ```
-architect-ai/
-├── index.html      # Markup for header, hero, features, workflow, demo, FAQ, footer, modal
-├── styles.css       # Design tokens (CSS variables) + component styles
-├── script.js        # Content data + interview logic + all interactivity
-└── README.md
-```
 
-## Running it locally
+---
 
-No install, no server required.
+### 📅 Interactive Sprint Roadmap
 
-1. Make sure all three files (`index.html`, `styles.css`, `script.js`) are in the **same folder**, with those **exact filenames**.
-2. Open `index.html` directly in a browser (double-click it, or drag it into a browser tab).
+Turn your architecture into an execution plan.
 
-Optional — if you prefer serving it over `http://` instead of `file://` (e.g. for consistent font loading):
+The roadmap provides:
+
+- Development phases
+- Engineering milestones
+- Tasks and deliverables
+- Interactive checklists
+- Completion tracking
+
+---
+
+## 💾 Persistence & Exports
+
+Your architecture doesn't disappear when you close the browser.
+
+### Session History
+
+Save and manage previous architecture sessions.
+
+- Save architectures locally
+- Reload previous sessions
+- Review past blueprints
+- Persistent browser-based storage
+
+### Export Options
+
+Export your generated architecture as:
+
+- 📄 **GitHub-ready Markdown (`.md`)**
+- 📦 **Structured JSON**
+- 🖨️ **Print-to-PDF**
+
+---
+
+## ⚡ Built with Pure Vanilla Web Technologies
+
+Architect AI was completely re-engineered using:
+
+- HTML5
+- CSS3
+- Modern JavaScript
+- Gemini API
+- Mermaid.js
+- LocalStorage
+
+### No:
+
+❌ React  
+❌ Next.js  
+❌ Build steps  
+❌ Bundlers  
+❌ Backend dependency  
+
+Just open it in a browser and run it.
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone the repository
 
 ```bash
-# Python
-python3 -m http.server 8000
-
-# Node
-npx serve .
+git clone https://github.com/Death-Slaughter/Architect-Ai.git
 ```
 
-Then visit `http://localhost:8000`.
+### 2. Navigate to the project
 
-## Features implemented
+```bash
+cd Architect-Ai
+```
 
-- **Sticky, blurred header** that activates on scroll, with a mobile hamburger menu
-- **Animated hero** with gradient text, a live particle-network canvas background, and a cursor-following glow
-- **Feature grid** with mouse-tracking spotlight hover effect
-- **3-step "how it works"** section
-- **Interactive interview demo**
-  - Typewriter-style bot replies
-  - Typing indicator between messages
-  - Quick-reply chips or free-text input
-  - Progress bar synced to question count
-  - Live-streaming blueprint panel (stack, roadmap, resume impact)
-  - Restart flow that fully resets state and UI
-- **Sample blueprint modal** — a static example blueprint for a recipe-sharing PWA, closable via button, backdrop click, or `Esc`
-- **FAQ accordion**
-- **Animated stat counters** (interview time, artifacts per run, blueprint accuracy) that count up when scrolled into view
-- **Scroll-reveal animations** on all major sections
-- Respects `prefers-reduced-motion` (disables animation timing)
+### 3. Run the project
 
-## Customizing content
+Since this project uses pure HTML, CSS, and JavaScript, no installation or build process is required.
 
-Everything text-based lives in `script.js` as plain data objects near the top of the file — edit these directly, no markup changes needed:
+Simply open:
 
-- `FEATURES` — the 6 feature cards
-- `STEPS` — the 3-step workflow cards
-- `FAQ` — question/answer pairs
-- `QUESTIONS` — the interview script (id, bot message, quick-reply options, blueprint label)
+```text
+index.html
+```
 
-The stack recommendation logic lives in `recommendStack()`, and the timeline-based roadmaps live in `generateRoadmap()` — both are plain functions you can extend with new cases.
+in your browser.
 
-## Known limitations
+You can also use a local development server such as VS Code Live Server.
 
-- The interview logic is a **client-side mock** — it pattern-matches your answers to canned stack/roadmap templates. It does not call any AI model or backend.
-- The **Schema** and **Roadmap** tabs above the blueprint panel are visual only (not wired to switch views yet).
-- No blueprint export (Markdown/PDF/share link) is implemented — this is referenced in the FAQ as a planned feature.
+---
 
-## Status
+## 🤖 Using AI Mode
 
-Private beta — interactive landing page only. Code generation / scaffolding is a planned later phase (see FAQ section on the page).
+Architect AI supports AI-powered adaptive interviews through the Gemini API.
+
+1. Open Architect AI.
+2. Enter your Gemini API key.
+3. The key is stored locally in your browser using LocalStorage.
+4. Start the interview.
+5. Answer the technical questions.
+6. Let Architect AI generate your engineering blueprint.
+
+> **Note:** The API key is handled client-side and is not sent to a custom backend server.
+
+---
+
+## 🧩 How It Works
+
+```text
+Project Idea
+     ↓
+Adaptive Technical Interview
+     ↓
+AI / Heuristic Analysis
+     ↓
+Requirement Discovery
+     ↓
+Architecture Generation
+     ↓
+┌─────────────────────────────┐
+│  Technology Stack           │
+│  System Architecture        │
+│  Database Schema            │
+│  Engineering Trade-offs     │
+│  Sprint Roadmap             │
+│  Resume Impact              │
+└─────────────────────────────┘
+     ↓
+Export / Save / Continue
+```
+
+---
+
+## 📁 Project Philosophy
+
+Architect AI was built around one core question:
+
+> **What if developers could validate and structure their technical decisions before writing the actual code?**
+
+The goal isn't to replace software architects.
+
+The goal is to help developers move from:
+
+**"I have an idea."**
+
+to:
+
+**"I have a technical plan for building it."**
+
+---
+
+## 🛣️ Roadmap
+
+Future versions may include:
+
+- [ ] More AI providers
+- [ ] Improved architecture recommendations
+- [ ] Cloud cost estimation
+- [ ] Security architecture analysis
+- [ ] Team collaboration
+- [ ] Architecture comparison
+- [ ] More domain archetypes
+- [ ] Advanced scalability simulations
+- [ ] Deployment recommendations
+- [ ] GitHub integration
+
+---
+
+## 🌐 Live Preview
+
+Try the project here:
+
+[🚀 Launch Architect AI](https://darshil2008.github.io/Architect-Ai/?utm_source=chatgpt.com)
+
+---
+
+## 🤝 Contributing
+
+Contributions, ideas, and feedback are welcome!
+
+If you find a bug, have an idea for a feature, or want to improve the architecture engine, feel free to open an issue or submit a pull request.
+
+---
+
+## 👨‍💻 Author
+
+**Darshil Gehlot**
+
+- [GitHub](https://github.com/Death-Slaughter?utm_source=chatgpt.com)
+- [LinkedIn](https://www.linkedin.com/in/darshil-gehlot-4b72a9414/?utm_source=chatgpt.com)
+
+---
+
+## 📄 License
+
+This project is open source and available for learning and development purposes.
+
+---
+
+### ⭐ If you found Architect AI interesting, consider giving the repository a star!
+
+**Build ideas. Ask the right questions. Architect before you code.** 🚀
